@@ -9,3 +9,12 @@ php artisan cache:clear
 
 Versão do meu php atual: 8.4.4
 Versão do meu node atual: 22.11.0
+
+Componentes
+https://www.radix-vue.com
+
+Ícones
+https://lucide.dev/icons
+
+Elementos com Tailwind
+https://uiverse.io/elements

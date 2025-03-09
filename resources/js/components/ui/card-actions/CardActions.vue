@@ -1,0 +1,170 @@
+<script setup lang="ts">
+import { cn } from '@/lib/utils'
+import { ref, computed } from 'vue'
+import type { HTMLAttributes } from 'vue'
+import { MessageCircle, MessageCircleOff, ClipboardCopy, Waypoints, ListTodo, QrCode, Info } from 'lucide-vue-next'
+import axios from 'axios'
+
+interface Props {
+  id?: number
+  name?: string
+  webhook_url?: string
+  public_token?: string
+  is_active?: boolean
+  webhook_enable?: boolean | number // Permitir número também
+  created_at?: string | null
+  updated_at?: string | null
+  class?: HTMLAttributes['class']
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  id: 0,
+  name: 'System Update',
+  webhook_url: '',
+  public_token: '',
+  is_active: false,
+  webhook_enable: true,
+  created_at: null,
+  updated_at: null,
+})
+
+// Converter webhook_enable para booleano
+const webhookEnable = ref(Boolean(props.webhook_enable)) // Converte 1/0 para true/false
+const isLoading = ref(false)
+
+const copyToken = async () => {
+  try {
+    await navigator.clipboard.writeText(props.public_token)
+    alert('Token copiado!')
+  } catch (err) {
+    console.error('Failed to copy token:', err)
+    alert('Falha ao copiar o token.')
+  }
+}
+
+const toggleWebhook = async () => {
+  isLoading.value = true
+  try {
+    const response = await axios.get(`/connection/enable-webhook/${props.id}`, {
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+      },
+    })
+    webhookEnable.value = response.data.webhook_enable
+    alert(response.data.success || 'Webhook atualizado com sucesso!')
+  } catch (error) {
+    console.error('Erro ao atualizar webhook:', error)
+    alert('Falha ao atualizar o webhook.')
+  } finally {
+    isLoading.value = false
+  }
+}
+</script>
+
+<template>
+  <div :class="cn('group relative w-full', props.class)">
+    <div class="relative overflow-hidden rounded-2xl border-2">
+      <div class="relative p-6 bg-sidebar">
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="relative">
+              <div class="relative flex h-12 w-12 items-center justify-center rounded-xl bg-accent dark:bg-neutral-800">
+                <MessageCircle v-if="is_active" />
+                <MessageCircleOff v-else />
+              </div>
+            </div>
+            <div>
+              <h3 class="font-semibold dark:text-white">{{ name }}</h3>
+            </div>
+          </div>
+          <div class="flex flex-col items-end gap-1">
+            <span
+              class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium"
+              :class="is_active ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'"
+            >
+              <span
+                class="h-1 w-1 rounded-full"
+                :class="is_active ? 'bg-emerald-500' : 'bg-red-500'"
+              ></span>
+              {{ is_active ? 'Ativo' : 'Inativo' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="mt-6 space-y-4">
+          <div class="rounded-xl bg-accent dark:bg-neutral-800 p-4">
+            <div class="flex items-center gap-3">
+              <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-500/10">
+                <Waypoints :size="15" />
+              </div>
+              <p class="text-sm dark:text-slate-400">{{ public_token }}</p>
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <button class="group/btn relative flex-1 overflow-hidden rounded-xl bg-indigo-500 p-px font-medium text-white">
+              <div class="relative rounded-xl bg-slate-500/50 px-4 py-3 transition-colors group-hover/btn:bg-transparent">
+                <span class="relative flex items-center justify-center gap-2">
+                  <ListTodo size="17" v-if="is_active" />
+                  <QrCode size="17" v-else />
+                  <span
+                    class="transition-transform duration-300 group-hover/btn:translate-x-1"
+                    v-text="is_active ? 'Detalhes' : 'QR Code'"
+                  ></span>
+                </span>
+              </div>
+            </button>
+            <button
+              class="transition duration-200 flex items-center justify-center rounded-xl bg-accent hover:bg-neutral-300 text-neutral-800 hover:text-neutral-900 dark:bg-neutral-800 hover:dark:bg-neutral-700 dark:text-neutral-200 hover:dark:text-neutral-100 px-4 py-3 font-medium"
+              title="Copiar token"
+              @click="copyToken"
+            >
+              <ClipboardCopy />
+            </button>
+          </div>
+        </div>
+
+        <!-- Toggle -->
+        <div class="mt-6 flex items-center justify-between rounded-xl bg-sky-900/30 p-4">
+          <div class="w-full flex justify-between items-center gap-1">
+            <div class="flex items-center gap-2">
+              <div class="dark:text-slate-400" title="O envio de webhook é útil para automações, porém requer mais processamento do servidor, o que pode aumentar a instabilidade dos serviços. Utilize com cautela.">
+                <Info size="20" />
+              </div>
+              <div>
+                <p class="text-sm font-medium dark:text-white">
+                  Envio de webhook: <span v-text="webhookEnable ? 'Ativo' : 'Inativo'"></span>
+                </p>
+                <p
+                  class="text-xs dark:text-slate-400 truncate max-w-[200px] md:max-w-[150px] lg:max-w-[170px] xl:max-w-[200px]"
+                  :title="webhook_url"
+                >
+                  {{ webhook_url }}
+                </p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input
+                v-model="webhookEnable"
+                type="checkbox"
+                class="sr-only peer"
+                @change="toggleWebhook"
+                :disabled="isLoading"
+              />
+              <div
+                class="w-11 h-6 rounded-full bg-slate-800 transition-colors"
+                :class="{ 'bg-emerald-500': webhookEnable, 'opacity-50': isLoading }"
+              ></div>
+              <div
+                class="w-4 h-4 bg-white rounded-full absolute left-1 top-1 transition-transform duration-300"
+                :class="{ 'translate-x-5': webhookEnable }"
+              ></div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
