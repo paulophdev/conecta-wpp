@@ -4,6 +4,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 import { CardActions } from '@/components/ui/card-actions';
+import ConnectionMenu from '@/components/ConnectionMenu.vue';
 
 defineProps<{
     connections: Array<{
@@ -26,6 +27,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head title="Conexões" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
+        <!-- Menu de ações -->
+        <div class="w-full p-4">
+            <ConnectionMenu />
+        </div>
+
+        <!-- Lista de conexões -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 h-full p-4">
             <template v-for="connection in connections" :key="connection.id">
                 <CardActions v-bind="connection" />
