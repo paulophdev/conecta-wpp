@@ -1,4 +1,5 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
+const { blackA, green, grass, mauve } = require('@radix-ui/colors');
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -20,6 +21,10 @@ export default {
                 sm: 'calc(var(--radius) - 4px)',
             },
             colors: {
+                ...blackA,
+                ...green,
+                ...grass,
+                ...mauve,
                 background: 'hsl(var(--background))',
                 foreground: 'hsl(var(--foreground))',
                 card: {
@@ -70,6 +75,20 @@ export default {
                     border: 'hsl(var(--sidebar-border))',
                     ring: 'hsl(var(--sidebar-ring))',
                 },
+            },
+            keyframes: {
+                overlayShow: {
+                  from: { opacity: 0 },
+                  to: { opacity: 1 },
+                },
+                contentShow: {
+                  from: { opacity: 0, transform: 'translate(-50%, -48%) scale(0.96)' },
+                  to: { opacity: 1, transform: 'translate(-50%, -50%) scale(1)' },
+                },
+            },
+            animation: {
+                overlayShow: 'overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1)',
+                contentShow: 'contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1)',
             },
         },
     },

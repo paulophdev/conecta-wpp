@@ -1,21 +1,15 @@
 <script setup lang="ts">
-import { ButtonNew } from "@/components/connection-menu/button-new";
-import { InputSearch } from "@/components/connection-menu/input-search";
+import { ButtonNew } from '@/components/connection-menu/button-new';
+import { InputSearch } from '@/components/connection-menu/input-search';
 
-interface Props {
-  // You can add specific props here if needed, e.g.:
-  // totalConnections?: number;
-  // maxConnections?: number;
-}
-
-defineProps<Props>();
+defineEmits(['create']);
 </script>
 
 <template>
   <div class="flex w-full flex-col gap-4 wrapper">
     <!-- Button and Connection Count Row -->
     <div class="flex w-full justify-between items-center top-row">
-      <ButtonNew />
+      <ButtonNew @create="$emit('create', $event)" />
       <div class="text-gray-700 dark:text-gray-300 text-sm sm:text-base whitespace-nowrap sm:mr-5">
         1 de 10 Conexões
       </div>
@@ -34,7 +28,8 @@ defineProps<Props>();
 }
 
 /* Desktop layout adjustments */
-@media (min-width: 640px) { /* Matches Tailwind's 'sm' breakpoint */
+@media (min-width: 640px) {
+  /* Matches Tailwind's 'sm' breakpoint */
   .wrapper {
     display: flex;
     flex-direction: row;

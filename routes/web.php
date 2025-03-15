@@ -20,6 +20,7 @@ Route::get('/trigger-hello', function () {
 });
 
 Route::any('/webhook/session-status', [WebhookController::class, 'handleSessionStatus']);
+Route::any('/webhook/default', [WebhookController::class, 'webhookDefault']);
 
 Route::get('/connections', [ConnectionController::class, 'index'])->name('connections')->middleware(['auth', 'verified']);
 Route::get('/connection/enable-webhook/{connection}', [ConnectionController::class, 'toggleWebhookStatus'])->middleware(['auth', 'verified'])->name('connection.toggleWebhookStatus');

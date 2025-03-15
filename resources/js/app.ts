@@ -12,6 +12,7 @@ import './echo';
 declare module 'vite/client' {
     interface ImportMetaEnv {
         readonly VITE_APP_NAME: string;
+        readonly VITE_APP_URL: string; // Adicione essa linha
         [key: string]: string | boolean | undefined;
     }
 

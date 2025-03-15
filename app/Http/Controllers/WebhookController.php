@@ -18,4 +18,10 @@ class WebhookController extends Controller
         // Retorna uma resposta para o webhook
         return response()->json(['message' => 'Webhook processado com sucesso']);
     }
+
+    public function webhookDefault(Request $request)
+    {
+        // Retorna uma resposta para o webhook
+        return response()->json(['message' => 'Webhook recebido com sucesso.']);
+    }
 }
