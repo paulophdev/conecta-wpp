@@ -4,6 +4,7 @@ use App\Events\HelloWorldEvent;
 use App\Http\Controllers\ConnectionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\WebhookController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -17,6 +18,8 @@ Route::get('/trigger-hello', function () {
     event(new HelloWorldEvent());
     return 'Evento disparado!';
 });
+
+Route::any('/webhook/session-status', [WebhookController::class, 'handleSessionStatus']);
 
 Route::get('/connections', [ConnectionController::class, 'index'])->name('connections')->middleware(['auth', 'verified']);
 Route::get('/connection/enable-webhook/{connection}', [ConnectionController::class, 'toggleWebhookStatus'])->middleware(['auth', 'verified'])->name('connection.toggleWebhookStatus');
