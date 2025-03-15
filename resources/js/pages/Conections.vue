@@ -32,6 +32,12 @@ const breadcrumbs: BreadcrumbItem[] = [
             <ConnectionMenu />
         </div>
 
+        <template v-if="connections.length === 0">
+            <div class="w-full h-full flex items-center justify-center">
+                <p class="text-gray-500 text-center">Nenhuma conexão encontrada.</p>
+            </div>
+        </template>
+
         <!-- Lista de conexões -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 h-full p-4">
             <template v-for="connection in connections" :key="connection.id">
