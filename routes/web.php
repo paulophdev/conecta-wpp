@@ -22,11 +22,18 @@ Route::get('/trigger-hello', function () {
 Route::any('/webhook/session-status', [WebhookController::class, 'handleSessionStatus']);
 Route::any('/webhook/default', [WebhookController::class, 'webhookDefault']);
 
-Route::get('/connections', [ConnectionController::class, 'index'])->name('connections')->middleware(['auth', 'verified']);
-Route::get('/connection/enable-webhook/{connection}', [ConnectionController::class, 'toggleWebhookStatus'])->middleware(['auth', 'verified'])->name('connection.toggleWebhookStatus');
-Route::post('/connections', [ConnectionController::class, 'store'])->middleware(['auth', 'verified'])->name('connections.store');
-Route::put('/connections/{connection}', [ConnectionController::class, 'update'])->middleware(['auth', 'verified'])->name('connections.update');
-Route::delete('/connections/{connection}', [ConnectionController::class, 'destroy'])->middleware(['auth', 'verified'])->name('connections.destroy');
+Route::get('/connections', [ConnectionController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('connections');
+Route::get('/connection/enable-webhook/{connection}', [ConnectionController::class, 'toggleWebhookStatus'])
+    ->middleware(['auth', 'verified'])
+    ->name('connection.toggleWebhookStatus');
+Route::post('/connections', [ConnectionController::class, 'store'])
+    ->middleware(['auth', 'verified'])
+    ->name('connections.store');
+
+// Route::put('/connections/{connection}', [ConnectionController::class, 'update'])->middleware(['auth', 'verified'])->name('connections.update');
+// Route::delete('/connections/{connection}', [ConnectionController::class, 'destroy'])->middleware(['auth', 'verified'])->name('connections.destroy');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

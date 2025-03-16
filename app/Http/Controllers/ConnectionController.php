@@ -5,28 +5,67 @@ namespace App\Http\Controllers;
 use App\Models\Connection;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Validator;
+use Ramsey\Uuid\Uuid;
 
 class ConnectionController extends Controller
 {
     public function index()
     {
         $connections = Connection::all();
-        return Inertia::render('Conections', [
+        return Inertia::render('Connections', [
             'connections' => $connections,
         ]);
     }
 
-    public function store(Request $request)
+    public function toggleWebhookStatus(Connection $connection)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'webhook_url' => 'required|url|max:255',
-            'public_token' => 'required|string|max:255',
+        $connection->update([
+            'webhook_enable' => !$connection->webhook_enable
         ]);
 
-        Connection::create($validated);
+        return response()->json(['success' => 'Conexão atualizada com sucesso!', 'webhook_enable' => $connection->webhook_enable]);
+    }
 
-        return redirect()->back()->with('success', 'Conexão criada com sucesso!');
+    public function store(Request $request)
+    {
+        // Definindo mensagens de erro personalizadas em português
+        $messages = [
+            'name.required' => 'O nome é obrigatório.',
+            'name.string' => 'O nome deve ser uma string.',
+            'name.max' => 'O nome não pode ter mais de 255 caracteres.',
+            'webhook_url.required' => 'A URL do webhook é obrigatória.',
+            'webhook_url.url' => 'A URL do webhook deve ser uma URL válida.',
+            'webhook_url.max' => 'A URL do webhook não pode ter mais de 255 caracteres.',
+        ];
+
+        // Validação com mensagens personalizadas
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'webhook_url' => 'required|url|max:255',
+        ], $messages);
+
+        // Se a validação falhar, retorna JSON com erros
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422); // Status HTTP 422 Unprocessable Entity
+        }
+
+        // Criando a conexão com os dados validados e o token público
+        $connection = Connection::create([
+            'name' => $request->input('name'),
+            'webhook_url' => $request->input('webhook_url'),
+            'public_token' => Uuid::uuid4()->toString(), // Gera um UUID v4 como token público
+        ]);
+
+        // Retorno em JSON para o frontend
+        return response()->json([
+            'success' => true,
+            'message' => 'Conexão criada com sucesso!',
+            'data' => $connection,
+        ], 201); // Status HTTP 201 Created
     }
 
     public function update(Request $request, Connection $connection)
@@ -40,15 +79,6 @@ class ConnectionController extends Controller
         $connection->update($validated);
 
         return redirect()->back()->with('success', 'Conexão atualizada com sucesso!');
-    }
-
-    public function toggleWebhookStatus(Connection $connection)
-    {
-        $connection->update([
-            'webhook_enable' => !$connection->webhook_enable
-        ]);
-
-        return response()->json(['success' => 'Conexão atualizada com sucesso!', 'webhook_enable' => $connection->webhook_enable]);
     }
 
     public function destroy(Connection $connection)
