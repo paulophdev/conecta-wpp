@@ -86,4 +86,63 @@ class WppConnectService
 
         throw new \Exception('Erro ao consultar status no WPP Connect: ' . $response->body());
     }
+
+    public function getProfileData(string $publicToken, string $privateToken): array
+    {
+        try {
+            // 1. Obter o número de telefone
+            $phoneUrl = "{$this->baseUrl}/{$publicToken}/get-phone-number";
+            $phoneResponse = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => "Bearer {$privateToken}",
+            ])->get($phoneUrl);
+
+            if (!$phoneResponse->successful()) {
+                throw new \Exception('Erro ao obter número de telefone: ' . $phoneResponse->body());
+            }
+
+            $phoneData = $phoneResponse->json();
+            $phoneNumber = $phoneData['response'] ?? null; // Ex.: "557592419101@c.us"
+            $phone = str_replace('@c.us', '', $phoneNumber); // Remove "@c.us" se necessário
+
+            // 2. Obter o nome do contato
+            $contactUrl = "{$this->baseUrl}/{$publicToken}/contact/{$phone}";
+            $contactResponse = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => "Bearer {$privateToken}",
+            ])->get($contactUrl);
+
+            $name = null;
+            if ($contactResponse->successful()) {
+                $contactData = $contactResponse->json();
+                $name = $contactData['response']['pushname'] ?? 'Desconhecido';
+            }
+
+            // 3. Obter a imagem do perfil
+            $profilePicUrl = "{$this->baseUrl}/{$publicToken}/profile-pic/{$phone}";
+            $profilePicResponse = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => "Bearer {$privateToken}",
+            ])->get($profilePicUrl);
+
+            $profilePic = null;
+            if ($profilePicResponse->successful()) {
+                $profilePicData = $profilePicResponse->json();
+                $profilePic = $profilePicData['response']['eurl'] ?? null;
+            }
+
+            return [
+                'phone' => $phone,
+                'name' => $name,
+                'profile_picture' => $profilePic,
+            ];
+        } catch (\Exception $e) {
+            // Retornar valores padrão em caso de erro
+            return [
+                'phone' => null,
+                'name' => 'Desconhecido',
+                'profile_picture' => null,
+            ];
+        }
+    }
 }

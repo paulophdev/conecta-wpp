@@ -160,6 +160,32 @@ class ConnectionController extends Controller
         }
     }
 
+    public function profile($publicToken)
+    {
+        // Buscar a conexão pelo public_token
+        $connection = Connection::where('public_token', $publicToken)->first();
+
+        if (!$connection) {
+            return response()->json(['success' => false, 'message' => 'Conexão não encontrada'], 404);
+        }
+
+        // Obter os dados do perfil via WppConnectService
+        $profileData = $this->wppConnectService->getProfileData($connection->public_token, $connection->private_token);
+
+        if (!$profileData['phone']) {
+            return response()->json(['success' => false, 'message' => 'Não foi possível obter os dados do perfil'], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'phone' => $profileData['phone'],
+                'name' => $profileData['name'],
+                'profile_picture' => $profileData['profile_picture'],
+            ],
+        ]);
+    }
+
     public function update(Request $request, Connection $connection)
     {
         $validated = $request->validate([
