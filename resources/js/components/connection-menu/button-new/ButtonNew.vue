@@ -1,17 +1,38 @@
+<!-- resources/js/components/connection-menu/button-new/ButtonNew.vue -->
 <script setup lang="ts">
 import { DialogTrigger } from 'radix-vue';
 import { CreateConnectionModal } from '@/components/connection-menu/create-connection-modal';
 import type { HTMLAttributes } from 'vue';
+import { ref } from 'vue';
+
+// Defina uma interface para o tipo de dados da conexão
+interface ConnectionData {
+  name: string;
+  webhook_url: string;
+  is_active: boolean;
+}
 
 const props = defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 
-defineEmits(['create']);
+const emit = defineEmits(['create']);
+const modalRef = ref(null);
+
+// Função para lidar com a criação da conexão com tipagem correta
+const handleCreate = (connectionData: ConnectionData) => {
+  // Emite o evento para o componente pai sem envolver o objeto em outra camada
+  emit('create', connectionData);
+};
+
+// Expor modalRef para o componente pai
+defineExpose({
+  modalRef
+});
 </script>
 
 <template>
-  <CreateConnectionModal @create="$emit('create', $event)">
+  <CreateConnectionModal @create="handleCreate" ref="modalRef">
     <template #trigger>
       <DialogTrigger as-child>
         <div class="voltage-button">

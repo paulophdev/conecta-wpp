@@ -18,6 +18,7 @@ const emit = defineEmits(['create']);
 const name = ref('');
 const webhookUrl = ref(`${import.meta.env.VITE_APP_URL}/webhook/default`);
 const isActive = ref(true);
+const isOpen = ref(false); // Controlador do estado do modal
 
 const resetForm = () => {
   name.value = '';
@@ -33,12 +34,22 @@ const submit = (event: Event) => {
     is_active: isActive.value,
   };
   emit('create', connectionData);
-  resetForm();
+  // Não fecharemos o modal aqui, pois queremos esperar a confirmação de sucesso
 };
+
+// Método para fechar o modal programaticamente
+const closeModal = () => {
+  isOpen.value = false;
+};
+
+// Expor o método para componentes pais
+defineExpose({
+  closeModal
+});
 </script>
 
 <template>
-  <DialogRoot>
+  <DialogRoot v-model:open="isOpen">
     <DialogTrigger as-child>
       <slot name="trigger" />
     </DialogTrigger>

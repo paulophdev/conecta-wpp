@@ -1,3 +1,4 @@
+<!-- resources/js/pages/Connections.vue -->
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -28,13 +29,17 @@ interface ValidationErrorResponse {
 }
 
 const isLoading = ref(false);
+const connectionMenuRef = ref(null);
+
+// Criar uma cópia reativa da lista de conexões
 const localConnections = ref(props.connections);
-const isModalOpen = ref(false); // Estado do modal
 
 onMounted(() => {
+  // Garantir que a lista local seja inicializada com os dados da prop
   localConnections.value = props.connections;
 });
 
+// Função para criar a conexão
 const handleCreateConnection = async (connectionData: {
   name: string;
   webhook_url: string;
@@ -42,6 +47,7 @@ const handleCreateConnection = async (connectionData: {
 }) => {
   isLoading.value = true;
   try {
+    // Envia os dados diretamente para o backend
     const response = await axios.post('/connections', connectionData, {
       headers: {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
@@ -49,16 +55,24 @@ const handleCreateConnection = async (connectionData: {
       },
     });
 
+    // Tratar a resposta do backend
     const { success, message, data } = response.data;
 
     if (success) {
       alert(message || 'Conexão criada com sucesso!');
       console.log('Nova conexão criada:', data);
+      
+      // Adicionar a nova conexão à lista local
       localConnections.value = [data, ...localConnections.value];
-      isModalOpen.value = false; // Fecha o modal após sucesso
+      
+      // Fechar o modal
+      if (connectionMenuRef.value?.createModalRef?.modalRef?.closeModal) {
+        connectionMenuRef.value.createModalRef.modalRef.closeModal();
+      }
     } else {
       alert('Algo deu errado ao criar a conexão.');
     }
+
   } catch (error) {
     const axiosError = error as AxiosError<ValidationErrorResponse>;
     if (axiosError.response && axiosError.response.status === 422) {
@@ -79,8 +93,9 @@ const handleCreateConnection = async (connectionData: {
   <Head title="Conexões" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
+    <!-- Menu de ações -->
     <div class="w-full p-4">
-      <ConnectionMenu @create="handleCreateConnection" v-model:open="isModalOpen" />
+      <ConnectionMenu @create="handleCreateConnection" ref="connectionMenuRef" />
     </div>
 
     <template v-if="localConnections.length === 0">
@@ -89,6 +104,7 @@ const handleCreateConnection = async (connectionData: {
       </div>
     </template>
 
+    <!-- Lista de conexões -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 h-full p-4">
       <template v-for="connection in localConnections" :key="connection.id">
         <CardActions v-bind="connection" />
