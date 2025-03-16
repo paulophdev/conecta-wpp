@@ -15,7 +15,7 @@ class WebhookController extends Controller
         $data = $request->all();
 
         // Verifica se o evento é "status-find"
-        if ($request->input('event') !== 'status-find') {
+        if (!$request->has('event') || $request->input('event') !== 'status-find') {
             return response()->json(['success' => true, 'message' => 'Webhook ignorado (evento não suportado)']);
         }
 
@@ -41,7 +41,7 @@ class WebhookController extends Controller
         // Mapear o status para is_active
         $isActive = match ($status) {
             'isLogged', 'inChat' => true, // Consideramos conectado
-            'notLogged', 'isNotConnected' => false, // Consideramos desconectado
+            'notLogged', 'isNotConnected', 'browserClose', 'qrReadError' => false, // Consideramos desconectado
             default => $connection->is_active, // Mantém o estado atual se status desconhecido
         };
 
