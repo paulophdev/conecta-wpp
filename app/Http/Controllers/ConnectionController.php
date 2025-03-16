@@ -132,7 +132,12 @@ class ConnectionController extends Controller
             // Consultar o status na API WPP Connect
             $statusData = $this->wppConnectService->getStatus($publicToken, $connection->private_token);
 
-            // Retornar o status da conexão junto com informações básicas
+            if (isset($statusData['status']) && $statusData['status'] === 'CONNECTED') {
+                // Atualizar o status da conexão no banco
+                $connection->is_active = true;
+                $connection->save();
+            }
+
             // Retornar o status da conexão junto com informações básicas
             return response()->json([
                 'success' => true,
