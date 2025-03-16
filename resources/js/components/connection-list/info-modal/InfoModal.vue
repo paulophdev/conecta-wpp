@@ -1,4 +1,4 @@
-<!-- resources/js/components/connection-list/ConnectionModal.vue -->
+<!-- resources/js/components/connection-list/info-modal.vue -->
 <script setup lang="ts">
 import {
   DialogClose,
@@ -16,7 +16,7 @@ interface Props {
   is_active: boolean;
   name: string;
   public_token: string;
-  loading?: boolean;
+  isLoading?: boolean;
   status?: {
     status: string;
     qrcode?: string;
@@ -44,13 +44,15 @@ const emit = defineEmits(['update:open']);
           {{ is_active ? 'Informações detalhadas da conexão ativa.' : 'Escaneie o QR Code para ativar a conexão.' }}
         </DialogDescription>
 
-        <div v-if="loading" class="text-center text-black">
-            Carregando informações. Aguarde!
+        <div v-if="isLoading" class="text-center text-black">
+          Carregando informações. Aguarde!
         </div>
         <div v-else class="flex flex-col gap-4 text-black">
           <!-- Exibir detalhes ou QR Code -->
           <div v-if="is_active || status?.status === 'CONNECTED'">
             <p>Conectado</p>
+            <p v-if="status?.version"><strong>Versão:</strong> {{ status.version }}</p>
+            <p v-if="status?.session"><strong>Sessão:</strong> {{ status.session }}</p>
           </div>
           <div v-else-if="status?.qrcode">
             <img :src="status.qrcode" alt="QR Code" class="w-full" />

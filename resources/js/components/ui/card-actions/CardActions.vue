@@ -1,7 +1,7 @@
 <!-- resources/js/components/ui/card-actions/CardActions.vue -->
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import type { HTMLAttributes } from 'vue';
 import { MessageCircle, MessageCircleOff, ClipboardCopy, Waypoints, Info } from 'lucide-vue-next';
 import InfoQrcode from '@/components/connection-list/info-qrcode/InfoQrcode.vue';
@@ -34,7 +34,8 @@ const props = withDefaults(defineProps<Props>(), {
 const webhookEnable = ref(Boolean(props.webhook_enable));
 const isLoading = ref(false);
 const isModalOpen = ref(false);
-const connectionStatus = ref<any>(null); // Armazena o status retornado pela API
+const connectionStatus = ref<any>(null);
+const localIsActive = ref(props.is_active);
 
 const copyToken = async () => {
   try {
@@ -74,11 +75,12 @@ const fetchConnectionStatus = async () => {
       },
     });
 
-    const { success, message, data } = response.data;
+    const { success, data } = response.data;
     if (success) {
-      connectionStatus.value = data; // Armazena os dados retornados
+      connectionStatus.value = data;
+      localIsActive.value = data.status.status === 'CONNECTED';
     } else {
-      alert(message || 'Erro ao obter o status da conexão.');
+      alert('Erro ao obter o status da conexão.');
     }
   } catch (error) {
     console.error('Erro ao consultar status:', error);
@@ -86,6 +88,25 @@ const fetchConnectionStatus = async () => {
   } finally {
     isLoading.value = false;
   }
+
+  // Conectar ao WebSocket ao abrir o modal
+  const channel = window.Echo.private(`connection.${props.public_token}`);
+  channel.listen('.status-updated', (event: any) => {
+    connectionStatus.value = {
+      id: event.id,
+      name: event.name,
+      public_token: event.public_token,
+      status: event.status,
+    };
+    localIsActive.value = event.is_active;
+    console.log('WebSocket event received:', event);
+  });
+};
+
+// Limpar o WebSocket ao fechar o modal
+const closeModal = () => {
+  isModalOpen.value = false;
+  window.Echo.leave(`connection.${props.public_token}`); // Desconectar do canal
 };
 </script>
 
@@ -98,7 +119,7 @@ const fetchConnectionStatus = async () => {
           <div class="flex items-center gap-4">
             <div class="relative">
               <div class="relative flex h-12 w-12 items-center justify-center rounded-xl bg-accent dark:bg-neutral-800">
-                <MessageCircle v-if="is_active" />
+                <MessageCircle v-if="localIsActive" />
                 <MessageCircleOff v-else />
               </div>
             </div>
@@ -109,13 +130,13 @@ const fetchConnectionStatus = async () => {
           <div class="flex flex-col items-end gap-1">
             <span
               class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium"
-              :class="is_active ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'"
+              :class="localIsActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'"
             >
               <span
                 class="h-1 w-1 rounded-full"
-                :class="is_active ? 'bg-emerald-500' : 'bg-red-500'"
+                :class="localIsActive ? 'bg-emerald-500' : 'bg-red-500'"
               ></span>
-              {{ is_active ? 'Ativo' : 'Inativo' }}
+              {{ localIsActive ? 'Ativo' : 'Inativo' }}
             </span>
           </div>
         </div>
@@ -132,8 +153,7 @@ const fetchConnectionStatus = async () => {
           </div>
 
           <div class="flex gap-3">
-            <InfoQrcode :is_active="is_active" @open-modal="fetchConnectionStatus" />
-
+            <InfoQrcode :is_active="localIsActive" @open-modal="fetchConnectionStatus" />
             <button
               class="transition duration-200 flex items-center justify-center rounded-xl bg-accent hover:bg-neutral-300 text-neutral-800 hover:text-neutral-900 dark:bg-neutral-800 hover:dark:bg-neutral-700 dark:text-neutral-200 hover:dark:text-neutral-100 px-4 py-3 font-medium"
               title="Copiar token"
@@ -188,12 +208,12 @@ const fetchConnectionStatus = async () => {
     <!-- Modal -->
     <InfoModal
       :open="isModalOpen"
-      :is_active="is_active"
+      :is_active="localIsActive"
       :name="name"
       :public_token="public_token"
       :status="connectionStatus?.status"
       :isLoading="isLoading"
-      @update:open="isModalOpen = $event"
+      @update:open="closeModal"
     />
   </div>
 </template>

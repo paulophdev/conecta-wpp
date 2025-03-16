@@ -9,6 +9,7 @@ php artisan cache:clear
 
 Versão do meu php atual: 8.4.4
 Versão do meu node atual: 22.11.0
+Versão do Laravel: 12.1.1
 
 Componentes
 https://www.radix-vue.com
