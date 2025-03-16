@@ -123,6 +123,12 @@ class ConnectionController extends Controller
         }
 
         try {
+            // Iniciar a sessão na API WPP Connect
+            $this->wppConnectService->startSession(
+                $publicToken,
+                $connection->private_token
+            );
+
             // Consultar o status na API WPP Connect
             $statusData = $this->wppConnectService->getStatus($publicToken, $connection->private_token);
 
