@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\Models\Connection;
+use App\Services\WppConnectService;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithBroadcasting;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -18,6 +19,11 @@ class ConnectionStatusUpdated implements ShouldBroadcast
 
     public function __construct(Connection $connection)
     {
+        $dados = (new WppConnectService())->getStatus(
+            $connection->public_token,
+            $connection->private_token
+        );
+
         // Extrair apenas os dados necessários do objeto Connection
         $this->connectionData = [
             'id' => $connection->id,
@@ -26,7 +32,7 @@ class ConnectionStatusUpdated implements ShouldBroadcast
             'is_active' => $connection->is_active,
             'status' => [
                 'status' => $connection->is_active ? 'isLogged' : 'notLogged',
-                'qrcode' => null,
+                'qrcode' => isset($dados['qrcode']) ? $dados['qrcode'] : null,
                 'urlcode' => null,
                 'version' => 'unknown',
                 'session' => $connection->public_token,
