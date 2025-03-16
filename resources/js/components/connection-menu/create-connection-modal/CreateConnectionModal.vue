@@ -40,6 +40,7 @@ const submit = (event: Event) => {
 // Método para fechar o modal programaticamente
 const closeModal = () => {
   isOpen.value = false;
+  resetForm();
 };
 
 // Expor o método para componentes pais
