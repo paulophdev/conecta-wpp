@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use App\Services\WppConnectService;
+use Illuminate\Support\Facades\Log;
 use Ramsey\Uuid\Uuid;
 
 class ConnectionController extends Controller
@@ -95,6 +96,8 @@ class ConnectionController extends Controller
             ], 201);
 
         } catch (\Throwable $th) {
+            Log::error('Erro ao criar conexão: ' . $th->getMessage());
+
             // Em caso de erro, excluir a conexão criada
             if (isset($connection)) {
                 $connection->delete();
@@ -104,6 +107,44 @@ class ConnectionController extends Controller
                 'success' => false,
                 'errors' => $th->getMessage(),
             ], 500);
+        }
+    }
+
+    public function status(string $publicToken)
+    {
+        // Buscar a conexão pelo public_token
+        $connection = Connection::where('public_token', $publicToken)->first();
+
+        if (!$connection) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Conexão não encontrada.',
+            ], 404); // Status HTTP 404 Not Found
+        }
+
+        try {
+            // Consultar o status na API WPP Connect
+            $statusData = $this->wppConnectService->getStatus($publicToken, $connection->private_token);
+
+            // Retornar o status da conexão junto com informações básicas
+            // Retornar o status da conexão junto com informações básicas
+            return response()->json([
+                'success' => true,
+                'message' => 'Status da conexão obtido com sucesso!',
+                'data' => [
+                    'id' => $connection->id,
+                    'name' => $connection->name,
+                    'public_token' => $connection->public_token,
+                    'status' => $statusData, // Dados retornados pela API WPP Connect
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Erro ao consultar status no WPP Connect: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao consultar o status da conexão.',
+                'error' => $e->getMessage(),
+            ], 500); // Status HTTP 500 Internal Server Error
         }
     }
 

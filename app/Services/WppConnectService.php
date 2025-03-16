@@ -54,4 +54,20 @@ class WppConnectService
             throw new \Exception("Erro ao iniciar sessão na API WPP Connect: " . $e->getMessage());
         }
     }
+
+    public function getStatus(string $publicToken, string $privateToken)
+    {
+        $url = "{$this->baseUrl}/{$publicToken}/status-session";
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => "Bearer {$privateToken}",
+        ])->get($url);
+
+        if ($response->successful()) {
+            return $response->json();
+        }
+
+        throw new \Exception('Erro ao consultar status no WPP Connect: ' . $response->body());
+    }
 }

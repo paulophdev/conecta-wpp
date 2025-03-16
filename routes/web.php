@@ -31,6 +31,9 @@ Route::get('/connection/enable-webhook/{connection}', [ConnectionController::cla
 Route::post('/connections', [ConnectionController::class, 'store'])
     ->middleware(['auth', 'verified'])
     ->name('connections.store');
+Route::get('/connections/status/{public_token}', [ConnectionController::class, 'status'])
+    // ->middleware(['auth', 'verified'])
+    ->name('connections.status');
 
 // Route::put('/connections/{connection}', [ConnectionController::class, 'update'])->middleware(['auth', 'verified'])->name('connections.update');
 // Route::delete('/connections/{connection}', [ConnectionController::class, 'destroy'])->middleware(['auth', 'verified'])->name('connections.destroy');
