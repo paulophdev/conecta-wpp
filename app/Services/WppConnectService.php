@@ -70,4 +70,20 @@ class WppConnectService
 
         throw new \Exception('Erro ao consultar status no WPP Connect: ' . $response->body());
     }
+
+    public function checkStatusConnection(string $publicToken, string $privateToken)
+    {
+        $url = "{$this->baseUrl}/{$publicToken}/check-connection-session";
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => "Bearer {$privateToken}",
+        ])->get($url);
+
+        if ($response->successful()) {
+            return $response->json();
+        }
+
+        throw new \Exception('Erro ao consultar status no WPP Connect: ' . $response->body());
+    }
 }

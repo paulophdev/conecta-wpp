@@ -123,20 +123,21 @@ class ConnectionController extends Controller
         }
 
         try {
-            // Iniciar a sessão na API WPP Connect
-            $this->wppConnectService->startSession(
-                $publicToken,
-                $connection->private_token
-            );
+            $checkConnection = $this->wppConnectService->checkStatusConnection($publicToken, $connection->private_token);
+
+            if (!$checkConnection['status']) {
+                // Iniciar a sessão na API WPP Connect
+                $this->wppConnectService->startSession(
+                    $publicToken,
+                    $connection->private_token
+                );
+            }
 
             // Consultar o status na API WPP Connect
             $statusData = $this->wppConnectService->getStatus($publicToken, $connection->private_token);
 
-            if (isset($statusData['status']) && $statusData['status'] === 'CONNECTED') {
-                // Atualizar o status da conexão no banco
-                $connection->is_active = true;
-                $connection->save();
-            }
+            $connection->is_active = $checkConnection['status'];
+            $connection->save();
 
             // Retornar o status da conexão junto com informações básicas
             return response()->json([
