@@ -19,10 +19,20 @@ class ConnectionStatusUpdated implements ShouldBroadcast
 
     public function __construct(Connection $connection)
     {
-        $dados = (new WppConnectService())->getStatus(
-            $connection->public_token,
-            $connection->private_token
-        );
+        $wppConnectService = new WppConnectService();
+
+        // Verificar o status da conexão
+        $checkConnection = $wppConnectService->checkStatusConnection($connection->public_token, $connection->private_token);
+
+        if (!$checkConnection['status']) {
+            $dados = (new WppConnectService())->getStatus(
+                $connection->public_token,
+                $connection->private_token
+            );
+        }
+
+        // Obter os dados do perfil (telefone, nome, imagem)
+        $profileData = $checkConnection['status'] ? $wppConnectService->getProfileData($connection->public_token, $connection->private_token) : [];
 
         // Extrair apenas os dados necessários do objeto Connection
         $this->connectionData = [
@@ -36,7 +46,8 @@ class ConnectionStatusUpdated implements ShouldBroadcast
                 'urlcode' => null,
                 'version' => 'unknown',
                 'session' => $connection->public_token,
-            ]
+            ],
+            'profile' => $profileData,
         ];
 
         // Se o controller passou dados de status, use-os
