@@ -19,3 +19,6 @@ https://lucide.dev/icons
 
 Elementos com Tailwind
 https://uiverse.io/elements
+
+Docs.
+http://localhost:21465/api-docs

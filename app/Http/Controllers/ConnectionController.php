@@ -123,23 +123,25 @@ class ConnectionController extends Controller
         }
 
         try {
+            // Verificar o status da conexão
             $checkConnection = $this->wppConnectService->checkStatusConnection($publicToken, $connection->private_token);
 
             if (!$checkConnection['status']) {
                 // Iniciar a sessão na API WPP Connect
-                $this->wppConnectService->startSession(
-                    $publicToken,
-                    $connection->private_token
-                );
+                $this->wppConnectService->startSession($publicToken, $connection->private_token);
             }
 
             // Consultar o status na API WPP Connect
             $statusData = $this->wppConnectService->getStatus($publicToken, $connection->private_token);
 
+            // Obter os dados do perfil (telefone, nome, imagem)
+            $profileData = $checkConnection['status'] ? $this->wppConnectService->getProfileData($publicToken, $connection->private_token) : [];
+
+            // Atualizar o is_active no banco
             $connection->is_active = $checkConnection['status'];
             $connection->save();
 
-            // Retornar o status da conexão junto com informações básicas
+            // Retornar o status da conexão junto com informações básicas e dados do perfil
             return response()->json([
                 'success' => true,
                 'message' => 'Status da conexão obtido com sucesso!',
@@ -147,7 +149,8 @@ class ConnectionController extends Controller
                     'id' => $connection->id,
                     'name' => $connection->name,
                     'public_token' => $connection->public_token,
-                    'status' => $statusData, // Dados retornados pela API WPP Connect
+                    'status' => $statusData, // Dados retornados pela API WPP Connect (status, qrcode, etc.)
+                    'profile' => $profileData,
                 ],
             ], 200);
         } catch (\Exception $e) {

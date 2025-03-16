@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from 'radix-vue';
 import { X } from 'lucide-vue-next';
+import { InfoProfile } from '@/components/connection-list/info-profile';
 
 interface Props {
   open: boolean;
@@ -24,9 +25,14 @@ interface Props {
     version?: string;
     session?: string;
   };
+  profile?: { // Adicionar profile como prop opcional
+    phone: string;
+    name: string;
+    profile_picture: string;
+  };
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 const emit = defineEmits(['update:open']);
 </script>
 
@@ -49,10 +55,12 @@ const emit = defineEmits(['update:open']);
         </div>
         <div v-else class="flex flex-col gap-4 text-black">
           <!-- Exibir detalhes ou QR Code -->
-          <div v-if="is_active || status?.status === 'CONNECTED'">
-            <p>Conectado</p>
-            <p v-if="status?.version"><strong>Versão:</strong> {{ status.version }}</p>
-            <p v-if="status?.session"><strong>Sessão:</strong> {{ status.session }}</p>
+          <div v-if="is_active || status?.status === 'CONNECTED'" class="flex flex-col items-center gap-4">
+            <InfoProfile
+              :name="profile?.name"
+              :phone="profile?.phone"
+              :profile_picture="profile?.profile_picture"
+            />
           </div>
           <div v-else-if="status?.qrcode">
             <img :src="status.qrcode" alt="QR Code" class="w-full" />

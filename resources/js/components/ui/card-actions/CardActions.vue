@@ -77,7 +77,7 @@ const fetchConnectionStatus = async () => {
 
     const { success, data } = response.data;
     if (success) {
-      connectionStatus.value = data;
+      connectionStatus.value = data; // Agora inclui 'status' e 'profile'
       localIsActive.value = data.status.status === 'CONNECTED';
     } else {
       alert('Erro ao obter o status da conexão.');
@@ -97,6 +97,7 @@ const fetchConnectionStatus = async () => {
       name: event.name,
       public_token: event.public_token,
       status: event.status,
+      profile: event.profile, // Adicionar profile ao evento WebSocket
     };
     localIsActive.value = event.is_active;
     import.meta.env.APP_ENV === 'local' && console.log('WebSocket event received:', event);
@@ -212,6 +213,7 @@ const closeModal = () => {
       :name="name"
       :public_token="public_token"
       :status="connectionStatus?.status"
+      :profile="connectionStatus?.profile"
       :isLoading="isLoading"
       @update:open="closeModal"
     />
