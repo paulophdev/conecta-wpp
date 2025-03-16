@@ -1,20 +1,23 @@
+<!-- resources/js/components/ui/card-actions/CardActions.vue -->
 <script setup lang="ts">
-import { cn } from '@/lib/utils'
-import { ref, computed } from 'vue'
-import type { HTMLAttributes } from 'vue'
-import { MessageCircle, MessageCircleOff, ClipboardCopy, Waypoints, ListTodo, QrCode, Info } from 'lucide-vue-next'
-import axios from 'axios'
+import { cn } from '@/lib/utils';
+import { ref } from 'vue';
+import type { HTMLAttributes } from 'vue';
+import { MessageCircle, MessageCircleOff, ClipboardCopy, Waypoints, Info } from 'lucide-vue-next';
+import InfoQrcode from '@/components/connection-list/info-qrcode/InfoQrcode.vue';
+import { InfoModal } from '@/components/connection-list/info-modal';
+import axios from 'axios';
 
 interface Props {
-  id?: number
-  name?: string
-  webhook_url?: string
-  public_token?: string
-  is_active?: boolean
-  webhook_enable?: boolean | number // Permitir número também
-  created_at?: string | null
-  updated_at?: string | null
-  class?: HTMLAttributes['class']
+  id?: number;
+  name?: string;
+  webhook_url?: string;
+  public_token?: string;
+  is_active?: boolean;
+  webhook_enable?: boolean | number;
+  created_at?: string | null;
+  updated_at?: string | null;
+  class?: HTMLAttributes['class'];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -26,39 +29,64 @@ const props = withDefaults(defineProps<Props>(), {
   webhook_enable: true,
   created_at: null,
   updated_at: null,
-})
+});
 
-// Converter webhook_enable para booleano
-const webhookEnable = ref(Boolean(props.webhook_enable)) // Converte 1/0 para true/false
-const isLoading = ref(false)
+const webhookEnable = ref(Boolean(props.webhook_enable));
+const isLoading = ref(false);
+const isModalOpen = ref(false);
+const connectionStatus = ref<any>(null); // Armazena o status retornado pela API
 
 const copyToken = async () => {
   try {
-    await navigator.clipboard.writeText(props.public_token)
-    alert('Token copiado!')
+    await navigator.clipboard.writeText(props.public_token);
+    alert('Token copiado!');
   } catch (err) {
-    console.error('Failed to copy token:', err)
-    alert('Falha ao copiar o token.')
+    console.error('Failed to copy token:', err);
+    alert('Falha ao copiar o token.');
   }
-}
+};
 
 const toggleWebhook = async () => {
-  isLoading.value = true
+  isLoading.value = true;
   try {
     const response = await axios.get(`/connection/enable-webhook/${props.id}`, {
       headers: {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
       },
-    })
-    webhookEnable.value = response.data.webhook_enable
-    alert(response.data.success || 'Webhook atualizado com sucesso!')
+    });
+    webhookEnable.value = response.data.webhook_enable;
+    alert(response.data.success || 'Webhook atualizado com sucesso!');
   } catch (error) {
-    console.error('Erro ao atualizar webhook:', error)
-    alert('Falha ao atualizar o webhook.')
+    console.error('Erro ao atualizar webhook:', error);
+    alert('Falha ao atualizar o webhook.');
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
+
+const fetchConnectionStatus = async () => {
+  isLoading.value = true;
+  isModalOpen.value = true;
+  try {
+    const response = await axios.get(`/connections/status/${props.public_token}`, {
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+      },
+    });
+
+    const { success, message, data } = response.data;
+    if (success) {
+      connectionStatus.value = data; // Armazena os dados retornados
+    } else {
+      alert(message || 'Erro ao obter o status da conexão.');
+    }
+  } catch (error) {
+    console.error('Erro ao consultar status:', error);
+    alert('Falha ao consultar o status da conexão.');
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
 <template>
@@ -104,18 +132,8 @@ const toggleWebhook = async () => {
           </div>
 
           <div class="flex gap-3">
-            <button class="group/btn relative flex-1 overflow-hidden rounded-xl bg-indigo-500 p-px font-medium text-white">
-              <div class="relative rounded-xl bg-slate-500/50 px-4 py-3 transition-colors group-hover/btn:bg-transparent">
-                <span class="relative flex items-center justify-center gap-2">
-                  <ListTodo size="17" v-if="is_active" />
-                  <QrCode size="17" v-else />
-                  <span
-                    class="transition-transform duration-300 group-hover/btn:translate-x-1"
-                    v-text="is_active ? 'Detalhes' : 'QR Code'"
-                  ></span>
-                </span>
-              </div>
-            </button>
+            <InfoQrcode :is_active="is_active" @open-modal="fetchConnectionStatus" />
+
             <button
               class="transition duration-200 flex items-center justify-center rounded-xl bg-accent hover:bg-neutral-300 text-neutral-800 hover:text-neutral-900 dark:bg-neutral-800 hover:dark:bg-neutral-700 dark:text-neutral-200 hover:dark:text-neutral-100 px-4 py-3 font-medium"
               title="Copiar token"
@@ -166,5 +184,16 @@ const toggleWebhook = async () => {
         </div>
       </div>
     </div>
+
+    <!-- Modal -->
+    <InfoModal
+      :open="isModalOpen"
+      :is_active="is_active"
+      :name="name"
+      :public_token="public_token"
+      :status="connectionStatus?.status"
+      :isLoading="isLoading"
+      @update:open="isModalOpen = $event"
+    />
   </div>
 </template>

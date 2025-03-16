@@ -19,8 +19,8 @@ Route::get('/trigger-hello', function () {
     return 'Evento disparado!';
 });
 
-Route::any('/webhook/session-status', [WebhookController::class, 'handleSessionStatus']);
-Route::any('/webhook/default', [WebhookController::class, 'webhookDefault']);
+Route::post('/api/webhook/session-status', [WebhookController::class, 'handleSessionStatus']);
+Route::get('/webhook/default', [WebhookController::class, 'webhookDefault']);
 
 Route::get('/connections', [ConnectionController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -32,7 +32,7 @@ Route::post('/connections', [ConnectionController::class, 'store'])
     ->middleware(['auth', 'verified'])
     ->name('connections.store');
 Route::get('/connections/status/{public_token}', [ConnectionController::class, 'status'])
-    // ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified'])
     ->name('connections.status');
 
 // Route::put('/connections/{connection}', [ConnectionController::class, 'update'])->middleware(['auth', 'verified'])->name('connections.update');
