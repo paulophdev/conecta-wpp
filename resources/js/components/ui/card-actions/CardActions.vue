@@ -99,7 +99,7 @@ const fetchConnectionStatus = async () => {
       status: event.status,
     };
     localIsActive.value = event.is_active;
-    console.log('WebSocket event received:', event);
+    import.meta.env.APP_ENV === 'local' && console.log('WebSocket event received:', event);
   });
 };
 
