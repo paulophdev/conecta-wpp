@@ -37,6 +37,9 @@ Route::get('/connections/status/{public_token}', [ConnectionController::class, '
 Route::get('/connections/profile/{public_token}', [ConnectionController::class, 'profile'])
     ->middleware(['auth', 'verified'])
     ->name('connections.profile');
+Route::put('/connections/{connection}', [ConnectionController::class, 'update'])
+    ->middleware(['auth', 'verified'])
+    ->name('connections.update');
 
 // Route::put('/connections/{connection}', [ConnectionController::class, 'update'])->middleware(['auth', 'verified'])->name('connections.update');
 // Route::delete('/connections/{connection}', [ConnectionController::class, 'destroy'])->middleware(['auth', 'verified'])->name('connections.destroy');

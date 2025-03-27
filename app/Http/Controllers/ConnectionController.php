@@ -191,15 +191,51 @@ class ConnectionController extends Controller
 
     public function update(Request $request, Connection $connection)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'webhook_url' => 'required|url|max:255',
-            'public_token' => 'required|string|max:255',
-        ]);
+        try {
+            // Definindo mensagens de erro personalizadas em português
+            $messages = [
+                'name.required' => 'O nome é obrigatório.',
+                'name.string' => 'O nome deve ser uma string.',
+                'name.max' => 'O nome não pode ter mais de 255 caracteres.',
+                'webhook_url.required' => 'A URL do webhook é obrigatória.',
+                'webhook_url.url' => 'A URL do webhook deve ser uma URL válida.',
+                'webhook_url.max' => 'A URL do webhook não pode ter mais de 255 caracteres.',
+            ];
 
-        $connection->update($validated);
+            // Validação com mensagens personalizadas
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'webhook_url' => 'required|url|max:255',
+            ], $messages);
 
-        return redirect()->back()->with('success', 'Conexão atualizada com sucesso!');
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+    
+            $connection->name = $validated['name'];
+            $connection->webhook_url = $validated['webhook_url'];
+            $connection->save();
+    
+            // Retorno em JSON para o frontend
+            return response()->json([
+                'success' => true,
+                'message' => 'Conexão editada com sucesso!',
+                'data' => $connection->refresh()->toArray(),
+            ], 201);
+            
+        } catch (\Throwable $th) {
+            Log::error('Erro ao editar conexão: ' . $th->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'errors' => $th->getMessage(),
+            ], 500);
+        }
     }
 
     public function destroy(Connection $connection)
