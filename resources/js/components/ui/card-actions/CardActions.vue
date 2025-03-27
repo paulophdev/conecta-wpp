@@ -1,13 +1,14 @@
 <!-- resources/js/components/ui/card-actions/CardActions.vue -->
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref } from 'vue';
 import type { HTMLAttributes } from 'vue';
-import { MessageCircle, MessageCircleOff, ClipboardCopy, Waypoints, Info } from 'lucide-vue-next';
+import { MessageCircle, MessageCircleOff, Pencil, Waypoints, Info } from 'lucide-vue-next';
 import InfoQrcode from '@/components/connection-list/info-qrcode/InfoQrcode.vue';
 import { InfoModal } from '@/components/connection-list/info-modal';
 import { DropdownMenu } from '@/components/connection-list/dropdown-menu';
 import { CopyTokenButton } from '@/components/connection-list/copy-token-button';
+import { DropdownMenuItem } from 'radix-vue';
 import axios from 'axios';
 
 interface Props {
@@ -38,16 +39,6 @@ const isLoading = ref(false);
 const isModalOpen = ref(false);
 const connectionStatus = ref<any>(null);
 const localIsActive = ref(props.is_active);
-
-const copyToken = async () => {
-  try {
-    await navigator.clipboard.writeText(props.public_token);
-    alert('Token copiado!');
-  } catch (err) {
-    console.error('Failed to copy token:', err);
-    alert('Falha ao copiar o token.');
-  }
-};
 
 const toggleWebhook = async () => {
   isLoading.value = true;
@@ -111,6 +102,8 @@ const closeModal = () => {
   isModalOpen.value = false;
   window.Echo.leave(`connection.${props.public_token}`); // Desconectar do canal
 };
+
+const emit = defineEmits(['open-edit-modal']);
 </script>
 
 <template>
@@ -159,7 +152,13 @@ const closeModal = () => {
             <InfoQrcode :is_active="localIsActive" @open-modal="fetchConnectionStatus" />
             <DropdownMenu>
               <CopyTokenButton :token="public_token" />
-              <!-- Adicione mais itens ao dropdown aqui no futuro, se necessário -->
+              <DropdownMenuItem
+                class="w-full px-4 py-2 text-sm text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2 cursor-pointer"
+                @click="emit('open-edit-modal', { id, name, webhook_url })"
+              >
+                <Pencil :size="16" />
+                Editar conexão
+              </DropdownMenuItem>
             </DropdownMenu>
           </div>
         </div>

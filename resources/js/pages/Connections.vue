@@ -6,7 +6,17 @@ import { Head } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 import { CardActions } from '@/components/ui/card-actions';
 import ConnectionMenu from '@/components/ConnectionMenu.vue';
+import { CreateConnectionModal } from '@/components/connection-menu/create-connection-modal';
 import axios, { AxiosError } from 'axios';
+
+interface ConnectionData {
+  id: number;
+  name: string;
+  webhook_url: string;
+  private_token: string;
+  public_token: string;
+  is_active: boolean;
+}
 
 const props = defineProps<{
   connections: Array<{
@@ -30,14 +40,35 @@ interface ValidationErrorResponse {
 
 const isLoading = ref(false);
 const connectionMenuRef = ref(null);
-
-// Criar uma cópia reativa da lista de conexões
+const editModalRef = ref(null);
+const connectionToEdit = ref(null);
 const localConnections = ref(props.connections);
 
-onMounted(() => {
-  // Garantir que a lista local seja inicializada com os dados da prop
-  localConnections.value = props.connections;
-});
+const openEditModal = (connection: ConnectionData) => {
+  connectionToEdit.value = connection;
+  editModalRef.value?.openModal(); // Abrir o modal
+};
+
+const editConnection = async (connectionData: ConnectionData) => {
+  isLoading.value = true;
+  try {
+    const response = await axios.put(`/connections/${connectionToEdit.value.id}`, connectionData, {
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+      },
+    });
+    const { success, data } = response.data;
+    if (success) {
+      localConnections.value = localConnections.value.map(conn => conn.id === data.id ? data : conn);
+      editModalRef.value?.closeModal();
+      alert('Conexão atualizada com sucesso!');
+    }
+  } catch (error) {
+    alert('Erro ao atualizar conexão.');
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 // Função para criar a conexão
 const handleCreateConnection = async (connectionData: {
@@ -87,6 +118,11 @@ const handleCreateConnection = async (connectionData: {
     isLoading.value = false;
   }
 };
+
+onMounted(() => {
+  // Garantir que a lista local seja inicializada com os dados da prop
+  localConnections.value = props.connections;
+});
 </script>
 
 <template>
@@ -107,8 +143,15 @@ const handleCreateConnection = async (connectionData: {
     <!-- Lista de conexões -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 h-full p-4">
       <template v-for="connection in localConnections" :key="connection.id">
-        <CardActions v-bind="connection" />
+        <CardActions v-bind="connection" @open-edit-modal="openEditModal" />
       </template>
     </div>
+
+    <!-- Modal de edição -->
+    <CreateConnectionModal
+      ref="editModalRef"
+      :connection="connectionToEdit"
+      @create="editConnection"
+    />
   </AppLayout>
 </template>
