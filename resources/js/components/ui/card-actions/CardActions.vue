@@ -6,6 +6,8 @@ import type { HTMLAttributes } from 'vue';
 import { MessageCircle, MessageCircleOff, ClipboardCopy, Waypoints, Info } from 'lucide-vue-next';
 import InfoQrcode from '@/components/connection-list/info-qrcode/InfoQrcode.vue';
 import { InfoModal } from '@/components/connection-list/info-modal';
+import { DropdownMenu } from '@/components/connection-list/dropdown-menu';
+import { CopyTokenButton } from '@/components/connection-list/copy-token-button';
 import axios from 'axios';
 
 interface Props {
@@ -155,13 +157,10 @@ const closeModal = () => {
 
           <div class="flex gap-3">
             <InfoQrcode :is_active="localIsActive" @open-modal="fetchConnectionStatus" />
-            <button
-              class="transition duration-200 flex items-center justify-center rounded-xl bg-accent hover:bg-neutral-300 text-neutral-800 hover:text-neutral-900 dark:bg-neutral-800 hover:dark:bg-neutral-700 dark:text-neutral-200 hover:dark:text-neutral-100 px-4 py-3 font-medium"
-              title="Copiar token"
-              @click="copyToken"
-            >
-              <ClipboardCopy />
-            </button>
+            <DropdownMenu>
+              <CopyTokenButton :token="public_token" />
+              <!-- Adicione mais itens ao dropdown aqui no futuro, se necessário -->
+            </DropdownMenu>
           </div>
         </div>
 
