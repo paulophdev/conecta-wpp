@@ -241,13 +241,19 @@ class ConnectionController extends Controller
     public function destroy(Connection $connection)
     {
         try {
+            if ($connection->is_active) {
+                $this->wppConnectService->logoutSession($connection->public_token, $connection->private_token);
+                $connection->is_active = false;
+                $connection->save();
+            }
+
             $connection->delete();
             
             // Retorno em JSON para o frontend
             return response()->json([
                 'success' => true,
                 'message' => 'Conexão excluída com sucesso!'
-            ], 201);
+            ], 200);
 
         } catch (\Throwable $th) {
             Log::error('Erro ao excluir conexão: ' . $th->getMessage());

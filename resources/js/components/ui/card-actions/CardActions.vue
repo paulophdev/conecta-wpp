@@ -131,7 +131,7 @@ const deleteConnection = async () => {
         },
       });
       if (response.data.success) {
-        emit('delete-connection'); // Notificar o pai para atualizar o estado
+        emit('delete-connection', props.id);
         alert('Conexão excluída com sucesso!');
       }
     } catch (error) {

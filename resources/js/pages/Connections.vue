@@ -91,7 +91,6 @@ const handleCreateConnection = async (connectionData: {
 
     if (success) {
       alert(message || 'Conexão criada com sucesso!');
-      console.log('Nova conexão criada:', data);
       
       // Adicionar a nova conexão à lista local
       localConnections.value = [data, ...localConnections.value];
@@ -157,7 +156,7 @@ onMounted(() => {
           v-bind="connection" 
           @open-edit-modal="openEditModal"
           @update:is_active="updateConnectionStatus(connection.id, $event)"
-          @delete-connection="deleteConnection(connection.id)"
+          @delete-connection="deleteConnection($event)"
         />
       </template>
     </div>
