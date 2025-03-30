@@ -119,6 +119,12 @@ const handleCreateConnection = async (connectionData: {
   }
 };
 
+const updateConnectionStatus = (id: number, isActive: boolean) => {
+  localConnections.value = localConnections.value.map(conn =>
+    conn.id === id ? { ...conn, is_active: isActive } : conn
+  );
+};
+
 onMounted(() => {
   // Garantir que a lista local seja inicializada com os dados da prop
   localConnections.value = props.connections;
@@ -143,7 +149,11 @@ onMounted(() => {
     <!-- Lista de conexões -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 h-full p-4">
       <template v-for="connection in localConnections" :key="connection.id">
-        <CardActions v-bind="connection" @open-edit-modal="openEditModal" />
+        <CardActions 
+          v-bind="connection" 
+          @open-edit-modal="openEditModal"
+          @update:is_active="updateConnectionStatus(connection.id, $event)" 
+        />
       </template>
     </div>
 

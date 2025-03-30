@@ -244,4 +244,14 @@ class ConnectionController extends Controller
 
         return redirect()->back()->with('success', 'Conexão excluída com sucesso!');
     }
+
+    public function disconnect(Connection $connection)
+    {
+        $this->wppConnectService->closeSession($connection->public_token, $connection->private_token);
+
+        $connection->is_active = false;
+        $connection->save();
+        
+        return response()->json(['success' => true, 'message' => 'Desconectado com sucesso']);
+    }
 }

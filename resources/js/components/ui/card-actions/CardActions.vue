@@ -3,7 +3,7 @@
 import { cn } from '@/lib/utils';
 import { ref } from 'vue';
 import type { HTMLAttributes } from 'vue';
-import { MessageCircle, MessageCircleOff, Pencil, Waypoints, Info } from 'lucide-vue-next';
+import { MessageCircle, MessageCircleOff, Pencil, Waypoints, Info, Power } from 'lucide-vue-next';
 import InfoQrcode from '@/components/connection-list/info-qrcode/InfoQrcode.vue';
 import { InfoModal } from '@/components/connection-list/info-modal';
 import { DropdownMenu } from '@/components/connection-list/dropdown-menu';
@@ -34,11 +34,12 @@ const props = withDefaults(defineProps<Props>(), {
   updated_at: null,
 });
 
+const emit = defineEmits(['open-edit-modal', 'update:is_active']);
+
 const webhookEnable = ref(Boolean(props.webhook_enable));
 const isLoading = ref(false);
 const isModalOpen = ref(false);
 const connectionStatus = ref<any>(null);
-const localIsActive = ref(props.is_active);
 
 const toggleWebhook = async () => {
   isLoading.value = true;
@@ -70,8 +71,8 @@ const fetchConnectionStatus = async () => {
 
     const { success, data } = response.data;
     if (success) {
-      connectionStatus.value = data; // Agora inclui 'status' e 'profile'
-      localIsActive.value = data.status.status === 'CONNECTED';
+      connectionStatus.value = data;
+      emit('update:is_active', data.status.status === 'CONNECTED'); // Atualizar o estado via evento
     } else {
       alert('Erro ao obter o status da conexão.');
     }
@@ -82,7 +83,6 @@ const fetchConnectionStatus = async () => {
     isLoading.value = false;
   }
 
-  // Conectar ao WebSocket ao abrir o modal
   const channel = window.Echo.private(`connection.${props.public_token}`);
   channel.listen('.status-updated', (event: any) => {
     connectionStatus.value = {
@@ -90,20 +90,38 @@ const fetchConnectionStatus = async () => {
       name: event.name,
       public_token: event.public_token,
       status: event.status,
-      profile: event.profile, // Adicionar profile ao evento WebSocket
+      profile: event.profile,
     };
-    localIsActive.value = event.is_active;
-    import.meta.env.APP_ENV === 'local' && console.log('WebSocket event received:', event);
+    emit('update:is_active', event.is_active); // Atualizar via WebSocket
   });
 };
 
-// Limpar o WebSocket ao fechar o modal
 const closeModal = () => {
   isModalOpen.value = false;
-  window.Echo.leave(`connection.${props.public_token}`); // Desconectar do canal
+  window.Echo.leave(`connection.${props.public_token}`);
 };
 
-const emit = defineEmits(['open-edit-modal']);
+const disconnect = async () => {
+  if (confirm(`Você tem certeza que deseja desconectar a conexão de ${props.name}?`)) {
+    isLoading.value = true;
+    try {
+      const response = await axios.post(`/connections/${props.id}/disconnect`, {}, {
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+        },
+      });
+      if (response.data.success) {
+        emit('update:is_active', false); // Notificar o pai para atualizar o estado
+        alert('Conexão desconectada com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao desconectar:', error);
+      alert('Falha ao desconectar a conexão.');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+};
 </script>
 
 <template>
@@ -115,7 +133,7 @@ const emit = defineEmits(['open-edit-modal']);
           <div class="flex items-center gap-4">
             <div class="relative">
               <div class="relative flex h-12 w-12 items-center justify-center rounded-xl bg-accent dark:bg-neutral-800">
-                <MessageCircle v-if="localIsActive" />
+                <MessageCircle v-if="props.is_active" />
                 <MessageCircleOff v-else />
               </div>
             </div>
@@ -126,13 +144,13 @@ const emit = defineEmits(['open-edit-modal']);
           <div class="flex flex-col items-end gap-1">
             <span
               class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium"
-              :class="localIsActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'"
+              :class="props.is_active ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'"
             >
               <span
                 class="h-1 w-1 rounded-full"
-                :class="localIsActive ? 'bg-emerald-500' : 'bg-red-500'"
+                :class="props.is_active ? 'bg-emerald-500' : 'bg-red-500'"
               ></span>
-              {{ localIsActive ? 'Ativo' : 'Inativo' }}
+              {{ props.is_active ? 'Ativo' : 'Inativo' }}
             </span>
           </div>
         </div>
@@ -149,7 +167,7 @@ const emit = defineEmits(['open-edit-modal']);
           </div>
 
           <div class="flex gap-3">
-            <InfoQrcode :is_active="localIsActive" @open-modal="fetchConnectionStatus" />
+            <InfoQrcode :is_active="props.is_active" @open-modal="fetchConnectionStatus" />
             <DropdownMenu>
               <CopyTokenButton :token="public_token" />
               <DropdownMenuItem
@@ -158,6 +176,15 @@ const emit = defineEmits(['open-edit-modal']);
               >
                 <Pencil :size="16" />
                 Editar conexão
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                v-if="props.is_active"
+                class="w-full px-4 py-2 text-sm text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2 cursor-pointer"
+                @click="disconnect"
+                :disabled="isLoading"
+              >
+                <Power :size="16" />
+                Desconectar
               </DropdownMenuItem>
             </DropdownMenu>
           </div>
@@ -204,10 +231,9 @@ const emit = defineEmits(['open-edit-modal']);
       </div>
     </div>
 
-    <!-- Modal -->
     <InfoModal
       :open="isModalOpen"
-      :is_active="localIsActive"
+      :is_active="props.is_active"
       :name="name"
       :public_token="public_token"
       :status="connectionStatus?.status"

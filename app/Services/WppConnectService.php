@@ -145,4 +145,24 @@ class WppConnectService
             ];
         }
     }
+
+    public function closeSession(string $uuid, string $privateToken): array
+    {
+        $url = "{$this->baseUrl}/{$uuid}/close-session";
+
+        try {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => "Bearer {$privateToken}",
+            ])->post($url);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            throw new RequestException($response);
+        } catch (RequestException $e) {
+            throw new \Exception("Erro ao iniciar sessão na API WPP Connect: " . $e->getMessage());
+        }
+    }
 }
