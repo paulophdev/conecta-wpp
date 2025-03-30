@@ -247,7 +247,7 @@ class ConnectionController extends Controller
 
     public function disconnect(Connection $connection)
     {
-        $this->wppConnectService->closeSession($connection->public_token, $connection->private_token);
+        $this->wppConnectService->logoutSession($connection->public_token, $connection->private_token);
 
         $connection->is_active = false;
         $connection->save();

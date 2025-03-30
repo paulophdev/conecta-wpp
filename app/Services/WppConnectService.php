@@ -165,4 +165,26 @@ class WppConnectService
             throw new \Exception("Erro ao iniciar sessão na API WPP Connect: " . $e->getMessage());
         }
     }
+
+    public function logoutSession(string $uuid, string $privateToken): array
+    {
+        $url = "{$this->baseUrl}/{$uuid}/logout-session";
+
+        try {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => "Bearer {$privateToken}",
+            ])->post($url, [
+                'session' => $uuid,
+            ]);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            throw new RequestException($response);
+        } catch (RequestException $e) {
+            throw new \Exception("Erro ao iniciar sessão na API WPP Connect: " . $e->getMessage());
+        }
+    }
 }
