@@ -240,9 +240,23 @@ class ConnectionController extends Controller
 
     public function destroy(Connection $connection)
     {
-        $connection->delete();
+        try {
+            $connection->delete();
+            
+            // Retorno em JSON para o frontend
+            return response()->json([
+                'success' => true,
+                'message' => 'Conexão excluída com sucesso!'
+            ], 201);
 
-        return redirect()->back()->with('success', 'Conexão excluída com sucesso!');
+        } catch (\Throwable $th) {
+            Log::error('Erro ao excluir conexão: ' . $th->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'errors' => $th->getMessage(),
+            ], 500);
+        }
     }
 
     public function disconnect(Connection $connection)

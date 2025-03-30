@@ -125,6 +125,10 @@ const updateConnectionStatus = (id: number, isActive: boolean) => {
   );
 };
 
+const deleteConnection = (id: number) => {
+  localConnections.value = localConnections.value.filter(conn => conn.id !== id);
+};
+
 onMounted(() => {
   // Garantir que a lista local seja inicializada com os dados da prop
   localConnections.value = props.connections;
@@ -152,7 +156,8 @@ onMounted(() => {
         <CardActions 
           v-bind="connection" 
           @open-edit-modal="openEditModal"
-          @update:is_active="updateConnectionStatus(connection.id, $event)" 
+          @update:is_active="updateConnectionStatus(connection.id, $event)"
+          @delete-connection="deleteConnection(connection.id)"
         />
       </template>
     </div>

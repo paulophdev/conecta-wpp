@@ -43,9 +43,9 @@ Route::put('/connections/{connection}', [ConnectionController::class, 'update'])
 Route::post('/connections/{connection}/disconnect', [ConnectionController::class, 'disconnect'])
     ->middleware(['auth', 'verified'])
     ->name('connections.disconnect');
-
-// Route::put('/connections/{connection}', [ConnectionController::class, 'update'])->middleware(['auth', 'verified'])->name('connections.update');
-// Route::delete('/connections/{connection}', [ConnectionController::class, 'destroy'])->middleware(['auth', 'verified'])->name('connections.destroy');
+Route::delete('/connections/{connection}', [ConnectionController::class, 'destroy'])
+    ->middleware(['auth', 'verified'])
+    ->name('connections.destroy');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

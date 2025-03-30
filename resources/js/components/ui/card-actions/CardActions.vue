@@ -3,7 +3,7 @@
 import { cn } from '@/lib/utils';
 import { ref } from 'vue';
 import type { HTMLAttributes } from 'vue';
-import { MessageCircle, MessageCircleOff, Pencil, Waypoints, Info, Power } from 'lucide-vue-next';
+import { MessageCircle, MessageCircleOff, Pencil, Waypoints, Info, Power, Trash2 } from 'lucide-vue-next';
 import InfoQrcode from '@/components/connection-list/info-qrcode/InfoQrcode.vue';
 import { InfoModal } from '@/components/connection-list/info-modal';
 import { DropdownMenu } from '@/components/connection-list/dropdown-menu';
@@ -33,8 +33,6 @@ const props = withDefaults(defineProps<Props>(), {
   created_at: null,
   updated_at: null,
 });
-
-const emit = defineEmits(['open-edit-modal', 'update:is_active']);
 
 const webhookEnable = ref(Boolean(props.webhook_enable));
 const isLoading = ref(false);
@@ -122,6 +120,30 @@ const disconnect = async () => {
     }
   }
 };
+
+const deleteConnection = async () => {
+  if (confirm(`Você tem certeza que deseja excluir a conexão de ${props.name}?`)) {
+    isLoading.value = true;
+    try {
+      const response = await axios.delete(`/connections/${props.id}`, {
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+        },
+      });
+      if (response.data.success) {
+        emit('delete-connection'); // Notificar o pai para atualizar o estado
+        alert('Conexão excluída com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
+      alert('Falha ao excluir a conexão.');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+};
+
+const emit = defineEmits(['open-edit-modal', 'update:is_active', 'delete-connection']);
 </script>
 
 <template>
@@ -185,6 +207,14 @@ const disconnect = async () => {
               >
                 <Power :size="16" />
                 Desconectar
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                class="w-full px-4 py-2 text-sm text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2 cursor-pointer"
+                @click="deleteConnection"
+                :disabled="isLoading"
+              >
+                <Trash2 :size="16" />
+                Excluir
               </DropdownMenuItem>
             </DropdownMenu>
           </div>
