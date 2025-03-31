@@ -7,6 +7,7 @@ import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
 import './echo';
+import { mask } from 'vue-the-mask';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -32,6 +33,7 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
+            .directive('mask', mask)
             .mount(el);
     },
     progress: {

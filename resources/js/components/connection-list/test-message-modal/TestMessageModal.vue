@@ -20,8 +20,10 @@ const sendTestMessage = async () => {
     alert('Por favor, insira um número de telefone.');
     return;
   }
+  // Remover caracteres não numéricos antes de enviar
+  const cleanPhone = testPhoneNumber.value.replace(/\D/g, '');
   emit('send-message', {
-    phone: testPhoneNumber.value,
+    phone: cleanPhone,
     message: testMessage.value,
   });
 };
@@ -53,7 +55,8 @@ const closeModal = () => {
             <Phone :size="18" color="#151717" class="dark:text-gray-400" />
             <input
               v-model="testPhoneNumber"
-              placeholder="5511999999999"
+              v-mask="'(##) #####-####'"
+              placeholder="(11) 99999-9999"
               class="ml-[10px] rounded-xl border-none w-full h-full bg-transparent text-black focus:outline-none placeholder:font-sans placeholder:text-gray-400 dark:placeholder:text-gray-500"
               required
             />
