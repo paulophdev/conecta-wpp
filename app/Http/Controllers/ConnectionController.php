@@ -274,4 +274,55 @@ class ConnectionController extends Controller
         
         return response()->json(['success' => true, 'message' => 'Desconectado com sucesso']);
     }
+
+    public function sendTestMessage(Request $request, Connection $connection)
+{
+    try {
+        // Validação dos dados
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string|max:20',
+            'message' => 'required|string|max:500',
+        ], [
+            'phone.required' => 'O número de telefone é obrigatório.',
+            'phone.string' => 'O número deve ser uma string.',
+            'phone.max' => 'O número não pode ter mais de 20 caracteres.',
+            'message.required' => 'A mensagem é obrigatória.',
+            'message.string' => 'A mensagem deve ser uma string.',
+            'message.max' => 'A mensagem não pode ter mais de 500 caracteres.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $validated = $validator->validated();
+
+        // Enviar mensagem via WPP Connect
+        $response = $this->wppConnectService->sendMessage(
+            $connection->public_token,
+            $connection->private_token,
+            $validated['phone'],
+            $validated['message']
+        );
+
+        if ($response['status'] === 'success') {
+            return response()->json([
+                'success' => true,
+                'message' => 'Mensagem de teste enviada com sucesso!',
+            ], 200);
+        } else {
+            throw new \Exception('Falha ao enviar mensagem no WPP Connect.');
+        }
+    } catch (\Exception $e) {
+        Log::error('Erro ao enviar mensagem de teste: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Erro ao enviar a mensagem de teste.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
 }

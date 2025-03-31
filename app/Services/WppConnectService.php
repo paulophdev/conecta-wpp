@@ -187,4 +187,28 @@ class WppConnectService
             throw new \Exception("Erro ao iniciar sessão na API WPP Connect: " . $e->getMessage());
         }
     }
+
+    public function sendMessage(string $publicToken, string $privateToken, string $phone, string $message): array
+    {
+        $url = "{$this->baseUrl}/{$publicToken}/send-message";
+
+        try {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => "Bearer {$privateToken}",
+            ])->post($url, [
+                'phone' => $phone,
+                'message' => $message
+            ]);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            throw new RequestException($response);
+
+        } catch (RequestException $e) {
+            throw new \Exception("Erro ao enviar mensagem na API WPP Connect: " . $e->getMessage());
+        }
+    }
 }

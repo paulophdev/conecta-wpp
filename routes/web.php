@@ -46,6 +46,9 @@ Route::post('/connections/{connection}/disconnect', [ConnectionController::class
 Route::delete('/connections/{connection}', [ConnectionController::class, 'destroy'])
     ->middleware(['auth', 'verified'])
     ->name('connections.destroy');
+Route::post('/connections/{connection}/test-message', [ConnectionController::class, 'sendTestMessage'])
+    ->middleware(['auth', 'verified'])
+    ->name('connections.test-message');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

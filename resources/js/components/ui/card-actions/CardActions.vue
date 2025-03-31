@@ -3,9 +3,10 @@
 import { cn } from '@/lib/utils';
 import { ref } from 'vue';
 import type { HTMLAttributes } from 'vue';
-import { MessageCircle, MessageCircleOff, Pencil, Waypoints, Info, Power, Trash2 } from 'lucide-vue-next';
-import InfoQrcode from '@/components/connection-list/info-qrcode/InfoQrcode.vue';
+import { MessageCircle, MessageCircleOff, Pencil, Waypoints, Info, Power, Trash2, Send } from 'lucide-vue-next';
+import { InfoQrcode } from '@/components/connection-list/info-qrcode';
 import { InfoModal } from '@/components/connection-list/info-modal';
+import { TestMessageModal } from '@/components/connection-list/test-message-modal';
 import { DropdownMenu } from '@/components/connection-list/dropdown-menu';
 import { CopyTokenButton } from '@/components/connection-list/copy-token-button';
 import { DropdownMenuItem } from 'radix-vue';
@@ -37,6 +38,7 @@ const props = withDefaults(defineProps<Props>(), {
 const webhookEnable = ref(Boolean(props.webhook_enable));
 const isLoading = ref(false);
 const isModalOpen = ref(false);
+const isTestModalOpen = ref(false);
 const connectionStatus = ref<any>(null);
 
 const toggleWebhook = async () => {
@@ -143,6 +145,29 @@ const deleteConnection = async () => {
   }
 };
 
+const sendTestMessage = async (data: { phone: string; message: string }) => {
+  isLoading.value = true;
+  try {
+    const response = await axios.post(`/connections/${props.id}/test-message`, {
+      phone: data.phone,
+      message: data.message,
+    }, {
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+      },
+    });
+    if (response.data.success) {
+      alert('Mensagem de teste enviada com sucesso!');
+      isTestModalOpen.value = false;
+    }
+  } catch (error) {
+    console.error('Erro ao enviar mensagem de teste:', error);
+    alert('Falha ao enviar a mensagem de teste.');
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 const emit = defineEmits(['open-edit-modal', 'update:is_active', 'delete-connection']);
 </script>
 
@@ -216,6 +241,14 @@ const emit = defineEmits(['open-edit-modal', 'update:is_active', 'delete-connect
                 <Trash2 :size="16" />
                 Excluir
               </DropdownMenuItem>
+              <DropdownMenuItem
+                class="w-full px-4 py-2 text-sm text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2 cursor-pointer"
+                @click="isTestModalOpen = true"
+                :disabled="isLoading || !props.is_active"
+              >
+                <Send :size="16" />
+                Testar Conexão
+              </DropdownMenuItem>
             </DropdownMenu>
           </div>
         </div>
@@ -261,6 +294,7 @@ const emit = defineEmits(['open-edit-modal', 'update:is_active', 'delete-connect
       </div>
     </div>
 
+    <!-- Modal de Info -->
     <InfoModal
       :open="isModalOpen"
       :is_active="props.is_active"
@@ -270,6 +304,15 @@ const emit = defineEmits(['open-edit-modal', 'update:is_active', 'delete-connect
       :profile="connectionStatus?.profile"
       :isLoading="isLoading"
       @update:open="closeModal"
+    />
+
+    <!-- Modal de Teste -->
+    <TestMessageModal
+      :open="isTestModalOpen"
+      :connectionId="props.id"
+      :isLoading="isLoading"
+      @update:open="isTestModalOpen = $event"
+      @send-message="sendTestMessage"
     />
   </div>
 </template>
