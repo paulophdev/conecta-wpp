@@ -21,7 +21,15 @@ class ConnectionController extends Controller
 
     public function index()
     {
-        $connections = Connection::all();
+        // Pega as conexões ordenadas pelas mais recentes primeiro
+        $connections = Connection::orderBy('created_at', 'desc')->get();
+
+        // Para requisições AJAX (como no refresh do frontend)
+        if (request()->wantsJson()) {
+            return response()->json(['connections' => $connections]);
+        }
+
+        // Para a renderização inicial com Inertia
         return Inertia::render('Connections', [
             'connections' => $connections,
         ]);

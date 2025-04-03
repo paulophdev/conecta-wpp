@@ -3,6 +3,7 @@
 import { ButtonNew } from '@/components/connection-menu/button-new';
 import { InputSearch } from '@/components/connection-menu/input-search';
 import { ref } from 'vue';
+import { RefreshCw } from 'lucide-vue-next'; // Ícone de refresh
 
 // Defina uma interface para o tipo de dados da conexão
 interface ConnectionData {
@@ -11,18 +12,29 @@ interface ConnectionData {
   is_active: boolean;
 }
 
-const emit = defineEmits(['create']);
+const emit = defineEmits(['create', 'refresh']); // Adicionamos o evento 'refresh'
 const createModalRef = ref(null);
+const isRefreshing = ref(false); // Estado para controlar o spinner
 
-// Função para lidar com a criação da conexão com tipagem correta
+// Função para lidar com a criação da conexão
 const handleCreate = (connectionData: ConnectionData) => {
-  // Emite o evento para o componente pai (Connections.vue) enviando apenas os dados
   emit('create', connectionData);
 };
 
-// Expor a referência do modal para o componente pai
+// Função para disparar o refresh
+const handleRefresh = () => {
+  isRefreshing.value = true;
+  emit('refresh'); // Emite o evento para o pai atualizar as conexões
+};
+
+// Função para resetar o estado de carregamento (chamada pelo pai após o refresh)
+const resetRefreshing = () => {
+  isRefreshing.value = false;
+};
+
 defineExpose({
-  createModalRef
+  createModalRef,
+  resetRefreshing, // Expondo para o pai poder resetar o estado
 });
 </script>
 
@@ -31,8 +43,24 @@ defineExpose({
     <!-- Button and Connection Count Row -->
     <div class="flex w-full justify-between items-center top-row">
       <ButtonNew @create="handleCreate" ref="createModalRef" />
-      <div class="text-gray-700 dark:text-gray-300 text-sm sm:text-base whitespace-nowrap sm:mr-5">
-        1 de 10 Conexões
+      <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300 text-sm sm:text-base whitespace-nowrap sm:mr-5">
+        <span>1 de 10 Conexões</span>
+        <button
+          @click="handleRefresh"
+          class="p-1 rounded-full transition-colors h-[45px] w-[45px] flex items-center justify-center"
+          :disabled="isRefreshing"
+          title="Atualizar conexões"
+        >
+          <RefreshCw
+            v-if="!isRefreshing"
+            :size="16"
+            class="text-gray-500 dark:text-gray-400"
+          />
+          <span
+            v-else
+            class="inline-block w-4 h-4 border-2 mb-[-2px] border-gray-500 border-t-transparent rounded-full animate-spin"
+          ></span>
+        </button>
       </div>
     </div>
 
@@ -50,7 +78,6 @@ defineExpose({
 
 /* Desktop layout adjustments */
 @media (min-width: 640px) {
-  /* Matches Tailwind's 'sm' breakpoint */
   .wrapper {
     display: flex;
     flex-direction: row;
@@ -62,11 +89,11 @@ defineExpose({
   .top-row {
     display: flex;
     align-items: center;
-    gap: 1rem; /* Matches Tailwind's gap-4 */
+    gap: 1rem;
   }
 
   .search-container {
-    margin-left: auto; /* Pushes search to the right */
+    margin-left: auto;
   }
 }
 </style>

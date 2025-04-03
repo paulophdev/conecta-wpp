@@ -128,6 +128,24 @@ const deleteConnection = (id: number) => {
   localConnections.value = localConnections.value.filter(conn => conn.id !== id);
 };
 
+const refreshConnections = async () => {
+  try {
+    const response = await axios.get('/connections', {
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+      },
+    });
+    localConnections.value = response.data.connections || response.data; // Ajuste conforme a estrutura da resposta
+  } catch (error) {
+    console.error('Erro ao atualizar conexões:', error);
+    alert('Falha ao atualizar as conexões.');
+  } finally {
+    if (connectionMenuRef.value?.resetRefreshing) {
+      connectionMenuRef.value.resetRefreshing(); // Reseta o estado de carregamento
+    }
+  }
+};
+
 onMounted(() => {
   // Garantir que a lista local seja inicializada com os dados da prop
   localConnections.value = props.connections;
@@ -140,7 +158,11 @@ onMounted(() => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <!-- Menu de ações -->
     <div class="w-full p-4">
-      <ConnectionMenu @create="handleCreateConnection" ref="connectionMenuRef" />
+      <ConnectionMenu 
+        @create="handleCreateConnection" 
+        @refresh="refreshConnections" 
+        ref="connectionMenuRef"
+      />
     </div>
 
     <template v-if="localConnections.length === 0">
