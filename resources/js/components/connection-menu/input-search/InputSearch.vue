@@ -1,10 +1,21 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue';
+import { ref } from 'vue';
 import { Search } from 'lucide-vue-next'
 
 const props = defineProps<{
     class?: HTMLAttributes['class'];
 }>();
+
+const searchQuery = ref('');
+
+const emit = defineEmits(['update:search']);
+
+const handleInput = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  searchQuery.value = target.value;
+  emit('update:search', searchQuery.value);
+};
 </script>
 
 <template>
@@ -17,6 +28,8 @@ const props = defineProps<{
             type="search"
             placeholder="Search..."
             name="searchbar"
+            v-model="searchQuery"
+            @input="handleInput"
         />
     </div>
 </template>

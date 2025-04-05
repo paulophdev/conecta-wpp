@@ -12,7 +12,7 @@ interface ConnectionData {
   is_active: boolean;
 }
 
-const emit = defineEmits(['create', 'refresh']); // Adicionamos o evento 'refresh'
+const emit = defineEmits(['create', 'refresh', 'update:search']);
 const createModalRef = ref(null);
 const isRefreshing = ref(false); // Estado para controlar o spinner
 
@@ -30,6 +30,10 @@ const handleRefresh = () => {
 // Função para resetar o estado de carregamento (chamada pelo pai após o refresh)
 const resetRefreshing = () => {
   isRefreshing.value = false;
+};
+
+const handleSearch = (query: string) => {
+  emit('update:search', query);
 };
 
 defineExpose({
@@ -66,7 +70,7 @@ defineExpose({
 
     <!-- Search Input Row (adjusted for desktop) -->
     <div class="w-full sm:w-auto search-container">
-      <InputSearch />
+      <InputSearch @update:search="handleSearch" />
     </div>
   </div>
 </template>

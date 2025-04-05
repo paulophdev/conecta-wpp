@@ -3,7 +3,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { CardActions } from '@/components/ui/card-actions';
 import ConnectionMenu from '@/components/ConnectionMenu.vue';
 import { CreateConnectionModal } from '@/components/connection-menu/create-connection-modal';
@@ -43,6 +43,7 @@ const connectionMenuRef = ref(null);
 const editModalRef = ref(null);
 const connectionToEdit = ref(null);
 const localConnections = ref(props.connections);
+const searchQuery = ref('');
 
 const openEditModal = (connection: ConnectionData) => {
   connectionToEdit.value = connection;
@@ -146,6 +147,20 @@ const refreshConnections = async () => {
   }
 };
 
+const filteredConnections = computed(() => {
+  if (!searchQuery.value) return localConnections.value;
+  const query = searchQuery.value.toLowerCase();
+  return localConnections.value.filter(conn =>
+    conn.name.toLowerCase().includes(query) ||
+    conn.webhook_url.toLowerCase().includes(query) ||
+    conn.public_token.toLowerCase().includes(query)
+  );
+});
+
+const handleSearch = (query: string) => {
+  searchQuery.value = query;
+};
+
 onMounted(() => {
   // Garantir que a lista local seja inicializada com os dados da prop
   localConnections.value = props.connections;
@@ -160,12 +175,13 @@ onMounted(() => {
     <div class="w-full p-4">
       <ConnectionMenu 
         @create="handleCreateConnection" 
-        @refresh="refreshConnections" 
+        @refresh="refreshConnections"
+        @update:search="handleSearch"
         ref="connectionMenuRef"
       />
     </div>
 
-    <template v-if="localConnections.length === 0">
+    <template v-if="filteredConnections.length === 0">
       <div class="w-full h-full flex items-center justify-center">
         <p class="text-gray-500 text-center">Nenhuma conexão encontrada.</p>
       </div>
@@ -173,7 +189,7 @@ onMounted(() => {
 
     <!-- Lista de conexões -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 h-full p-4">
-      <template v-for="connection in localConnections" :key="connection.id">
+      <template v-for="connection in filteredConnections" :key="connection.id">
         <CardActions 
           v-bind="connection" 
           @open-edit-modal="openEditModal"
