@@ -197,7 +197,7 @@ const emit = defineEmits(['open-edit-modal', 'update:is_active', 'delete-connect
                 class="h-1 w-1 rounded-full"
                 :class="props.is_active ? 'bg-emerald-500' : 'bg-red-500'"
               ></span>
-              {{ props.is_active ? 'Ativo' : 'Inativo' }}
+              {{ props.is_active ? 'Conectado' : 'Desconectado' }}
             </span>
           </div>
         </div>
