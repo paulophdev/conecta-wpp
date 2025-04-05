@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { ButtonNew } from '@/components/connection-menu/button-new';
 import { InputSearch } from '@/components/connection-menu/input-search';
+import { FilterDropdown } from '@/components/connection-menu/filter-dropdown';
 import { ref } from 'vue';
 import { RefreshCw } from 'lucide-vue-next'; // Ícone de refresh
 
@@ -12,7 +13,7 @@ interface ConnectionData {
   is_active: boolean;
 }
 
-const emit = defineEmits(['create', 'refresh', 'update:search']);
+const emit = defineEmits(['create', 'refresh', 'update:search', 'update:filter']);
 const createModalRef = ref(null);
 const isRefreshing = ref(false); // Estado para controlar o spinner
 
@@ -36,6 +37,10 @@ const handleSearch = (query: string) => {
   emit('update:search', query);
 };
 
+const handleFilter = (value: string) => {
+  emit('update:filter', value);
+};
+
 defineExpose({
   createModalRef,
   resetRefreshing, // Expondo para o pai poder resetar o estado
@@ -48,7 +53,8 @@ defineExpose({
     <div class="flex w-full justify-between items-center top-row">
       <ButtonNew @create="handleCreate" ref="createModalRef" />
       <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300 text-sm sm:text-base whitespace-nowrap sm:mr-5">
-        <span>1 de 10 Conexões</span>
+        <span title="Quantidade de conexões">1 de 10</span>
+        <FilterDropdown @update:filter="handleFilter" />
         <button
           @click="handleRefresh"
           class="p-1 rounded-full transition-colors h-[45px] w-[45px] flex items-center justify-center"

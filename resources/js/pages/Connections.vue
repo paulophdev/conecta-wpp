@@ -44,6 +44,7 @@ const editModalRef = ref(null);
 const connectionToEdit = ref(null);
 const localConnections = ref(props.connections);
 const searchQuery = ref('');
+const filterStatus = ref('all');
 
 const openEditModal = (connection: ConnectionData) => {
   connectionToEdit.value = connection;
@@ -148,17 +149,32 @@ const refreshConnections = async () => {
 };
 
 const filteredConnections = computed(() => {
-  if (!searchQuery.value) return localConnections.value;
-  const query = searchQuery.value.toLowerCase();
-  return localConnections.value.filter(conn =>
-    conn.name.toLowerCase().includes(query) ||
-    conn.webhook_url.toLowerCase().includes(query) ||
-    conn.public_token.toLowerCase().includes(query)
-  );
+  let result = localConnections.value;
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    result = result.filter(conn =>
+      conn.name.toLowerCase().includes(query) ||
+      conn.webhook_url.toLowerCase().includes(query) ||
+      conn.public_token.toLowerCase().includes(query)
+    );
+  }
+
+  if (filterStatus.value === 'connected') {
+    result = result.filter(conn => conn.is_active);
+  } else if (filterStatus.value === 'disconnected') {
+    result = result.filter(conn => !conn.is_active);
+  }
+
+  return result;
 });
 
 const handleSearch = (query: string) => {
   searchQuery.value = query;
+};
+
+const handleFilter = (value: string) => {
+  filterStatus.value = value;
 };
 
 onMounted(() => {
@@ -177,6 +193,7 @@ onMounted(() => {
         @create="handleCreateConnection" 
         @refresh="refreshConnections"
         @update:search="handleSearch"
+        @update:filter="handleFilter"
         ref="connectionMenuRef"
       />
     </div>
