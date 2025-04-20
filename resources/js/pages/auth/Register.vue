@@ -62,7 +62,7 @@ const submit = () => {
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password_confirmation">Repira a senha</Label>
+                    <Label for="password_confirmation">Repita a senha</Label>
                     <Input
                         id="password_confirmation"
                         type="password"
