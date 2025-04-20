@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Services\WppConnectService;
 use Illuminate\Support\Facades\Log;
 use Ramsey\Uuid\Uuid;
+use Illuminate\Support\Facades\Auth;
 
 class ConnectionController extends Controller
 {
@@ -21,8 +22,10 @@ class ConnectionController extends Controller
 
     public function index()
     {
-        // Pega as conexões ordenadas pelas mais recentes primeiro
-        $connections = Connection::orderBy('created_at', 'desc')->get();
+        // Pega as conexões da organização do usuário autenticado
+        $connections = Connection::where('organization_id', Auth::user()->organization_id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // Para requisições AJAX (como no refresh do frontend)
         if (request()->wantsJson()) {
@@ -77,6 +80,7 @@ class ConnectionController extends Controller
                 'name' => $request->input('name'),
                 'webhook_url' => $request->input('webhook_url'),
                 'public_token' => $uuid,
+                'organization_id' => auth()->user()->organization_id,
             ]);
 
             // Gerar o token na API WPP Connect

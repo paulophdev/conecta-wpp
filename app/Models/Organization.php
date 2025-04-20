@@ -14,4 +14,9 @@ class Organization extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function connections()
+    {
+        return $this->hasMany(Connection::class);
+    }
 }

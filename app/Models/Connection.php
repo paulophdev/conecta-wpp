@@ -12,9 +12,15 @@ class Connection extends Model
         'public_token',
         'is_active',
         'webhook_enable',
+        'organization_id',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
 }
