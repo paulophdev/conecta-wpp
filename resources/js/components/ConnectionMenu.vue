@@ -13,6 +13,11 @@ interface ConnectionData {
   is_active: boolean;
 }
 
+const props = defineProps<{
+  totalConnections: number;
+  maxConnections: number;
+}>();
+
 const emit = defineEmits(['create', 'refresh', 'update:search', 'update:filter']);
 const createModalRef = ref(null);
 const isRefreshing = ref(false); // Estado para controlar o spinner
@@ -53,7 +58,7 @@ defineExpose({
     <div class="flex w-full justify-between items-center top-row">
       <ButtonNew @create="handleCreate" ref="createModalRef" />
       <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300 text-sm sm:text-base whitespace-nowrap sm:mr-5">
-        <span title="Quantidade de conexões">1 de 10</span>
+        <span title="Quantidade de conexões">{{ totalConnections }} de {{ maxConnections }}</span>
         <FilterDropdown @update:filter="handleFilter" />
         <button
           @click="handleRefresh"

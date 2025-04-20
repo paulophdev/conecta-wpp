@@ -8,6 +8,7 @@ class Organization extends Model
 {
     protected $fillable = [
         'name',
+        'max_connections',
     ];
 
     public function users()

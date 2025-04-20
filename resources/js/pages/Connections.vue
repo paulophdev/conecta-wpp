@@ -27,6 +27,8 @@ const props = defineProps<{
     public_token: string;
     is_active: boolean;
   }>;
+  totalConnections: number;
+  maxConnections: number;
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -45,6 +47,7 @@ const connectionToEdit = ref(null);
 const localConnections = ref(props.connections);
 const searchQuery = ref('');
 const filterStatus = ref('all');
+const localTotalConnections = ref(props.totalConnections);
 
 const openEditModal = (connection: ConnectionData) => {
   connectionToEdit.value = connection;
@@ -97,10 +100,8 @@ const handleCreateConnection = async (connectionData: {
       // Adicionar a nova conexão à lista local
       localConnections.value = [data, ...localConnections.value];
       
-      // Fechar o modal
-      if (connectionMenuRef.value?.createModalRef?.modalRef?.closeModal) {
-        connectionMenuRef.value.createModalRef.modalRef.closeModal();
-      }
+      // Atualizar o total de conexões
+      localTotalConnections.value += 1;
     } else {
       alert('Algo deu errado ao criar a conexão.');
     }
@@ -117,6 +118,10 @@ const handleCreateConnection = async (connectionData: {
     }
   } finally {
     isLoading.value = false;
+    // Fechar o modal
+    if (connectionMenuRef.value?.createModalRef?.modalRef?.closeModal) {
+      connectionMenuRef.value.createModalRef.modalRef.closeModal();
+    }
   }
 };
 
@@ -128,6 +133,7 @@ const updateConnectionStatus = (id: number, isActive: boolean) => {
 
 const deleteConnection = (id: number) => {
   localConnections.value = localConnections.value.filter(conn => conn.id !== id);
+  localTotalConnections.value -= 1;
 };
 
 const refreshConnections = async () => {
@@ -194,6 +200,8 @@ onMounted(() => {
         @refresh="refreshConnections"
         @update:search="handleSearch"
         @update:filter="handleFilter"
+        :totalConnections="localTotalConnections"
+        :maxConnections="maxConnections"
         ref="connectionMenuRef"
       />
     </div>

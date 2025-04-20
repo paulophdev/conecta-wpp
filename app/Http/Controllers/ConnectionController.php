@@ -23,18 +23,25 @@ class ConnectionController extends Controller
     public function index()
     {
         // Pega as conexões da organização do usuário autenticado
-        $connections = Connection::where('organization_id', Auth::user()->organization_id)
+        $organization = Auth::user()->organization;
+        $connections = $organization->connections()
             ->orderBy('created_at', 'desc')
             ->get();
 
         // Para requisições AJAX (como no refresh do frontend)
         if (request()->wantsJson()) {
-            return response()->json(['connections' => $connections]);
+            return response()->json([
+                'connections' => $connections,
+                'totalConnections' => $connections->count(),
+                'maxConnections' => $organization->max_connections,
+            ]);
         }
 
         // Para a renderização inicial com Inertia
         return Inertia::render('Connections', [
             'connections' => $connections,
+            'totalConnections' => $connections->count(),
+            'maxConnections' => $organization->max_connections,
         ]);
     }
 
@@ -50,6 +57,19 @@ class ConnectionController extends Controller
     public function store(Request $request)
     {
         try {
+            // Verificar se a organização atingiu o limite de conexões
+            $organization = Auth::user()->organization;
+            $currentConnections = $organization->connections()->count();
+            
+            if ($currentConnections >= $organization->max_connections) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => [
+                        'limit' => ['Limite de conexões atingido para esta organização.']
+                    ],
+                ], 422);
+            }
+
             // Definindo mensagens de erro personalizadas em português
             $messages = [
                 'name.required' => 'O nome é obrigatório.',
