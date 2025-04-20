@@ -248,7 +248,7 @@ const emit = defineEmits(['open-edit-modal', 'update:is_active', 'delete-connect
                 :disabled="isLoading"
               >
                 <Send :size="16" />
-                Testar Conexão
+                Testar conexão
               </DropdownMenuItem>
             </DropdownMenu>
           </div>
