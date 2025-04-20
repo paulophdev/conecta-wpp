@@ -99,7 +99,7 @@ import { Head, Link } from '@inertiajs/vue3';
                                 </span>
                             </span>
                             <span>
-                                leia nossa
+                                Leia nossa
                                 <a
                                     href="/docs"
                                     target="_blank"
