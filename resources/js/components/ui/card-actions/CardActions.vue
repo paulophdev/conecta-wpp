@@ -242,9 +242,10 @@ const emit = defineEmits(['open-edit-modal', 'update:is_active', 'delete-connect
                 Excluir
               </DropdownMenuItem>
               <DropdownMenuItem
+                v-if="props.is_active"
                 class="w-full px-4 py-2 text-sm text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2 cursor-pointer"
                 @click="isTestModalOpen = true"
-                :disabled="isLoading || !props.is_active"
+                :disabled="isLoading"
               >
                 <Send :size="16" />
                 Testar Conexão
