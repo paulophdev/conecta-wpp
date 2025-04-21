@@ -49,6 +49,9 @@ Route::delete('/connections/{connection}', [ConnectionController::class, 'destro
 Route::post('/connections/{connection}/test-message', [ConnectionController::class, 'sendTestMessage'])
     ->middleware(['auth', 'verified'])
     ->name('connections.test-message');
+Route::get('/connections/chart-data', [ConnectionController::class, 'getConnectionsChartData'])
+    ->middleware(['auth', 'verified'])
+    ->name('connections.chart-data');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
