@@ -11,6 +11,9 @@ Versão do meu php atual: 8.4.4
 Versão do meu node atual: 22.11.0
 Versão do Laravel: 12.1.1
 
+cd C:\Users\paulo\OneDrive\Documentos\projetos-pessoais\wppconnect-server
+npm run dev
+
 Componentes
 https://www.radix-vue.com
 
