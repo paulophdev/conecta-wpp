@@ -3,12 +3,11 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import { ref, onMounted, computed } from 'vue';
-import { CardActions } from '@/components/ui/card-actions';
+import { ref } from 'vue';
 import ConnectionMenu from '@/components/ConnectionMenu.vue';
 import { CreateConnectionModal } from '@/components/connection-menu/create-connection-modal';
-import axios, { AxiosError } from 'axios';
-import { useToast } from 'vue-toastification';
+import ConnectionList from '@/components/ConnectionList.vue';
+import { useConnections } from '@/composables/useConnections';
 
 interface ConnectionData {
   id: number;
@@ -20,14 +19,7 @@ interface ConnectionData {
 }
 
 const props = defineProps<{
-  connections: Array<{
-    id: number;
-    name: string;
-    webhook_url: string;
-    private_token: string;
-    public_token: string;
-    is_active: boolean;
-  }>;
+  connections: ConnectionData[];
   totalConnections: number;
   maxConnections: number;
 }>();
@@ -36,139 +28,45 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Conexões', href: '/connections' },
 ];
 
-interface ValidationErrorResponse {
-  success: boolean;
-  errors: { [key: string]: string[] };
-}
-
-const isLoading = ref(false);
 const connectionMenuRef = ref(null);
 const editModalRef = ref(null);
-const connectionToEdit = ref(null);
-const localConnections = ref(props.connections);
-const searchQuery = ref('');
-const filterStatus = ref('all');
-const localTotalConnections = ref(props.totalConnections);
-const toast = useToast();
+const connectionToEdit = ref<ConnectionData | null>(null);
+
+const {
+  isLoading,
+  localTotalConnections,
+  searchQuery,
+  filterStatus,
+  filteredConnections,
+  editConnection,
+  createConnection,
+  refreshConnections,
+  updateConnectionStatus,
+  deleteConnection,
+} = useConnections(props.connections, props.totalConnections);
 
 const openEditModal = (connection: ConnectionData) => {
   connectionToEdit.value = connection;
-  editModalRef.value?.openModal(); // Abrir o modal
+  editModalRef.value?.openModal();
 };
 
-const editConnection = async (connectionData: ConnectionData) => {
-  isLoading.value = true;
-  try {
-    const response = await axios.put(`/connections/${connectionToEdit.value.id}`, connectionData, {
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-      },
-    });
-    const { success, data } = response.data;
-    if (success) {
-      localConnections.value = localConnections.value.map(conn => conn.id === data.id ? data : conn);
-      editModalRef.value?.closeModal();
-      toast.success('Conexão atualizada com sucesso!');
-    }
-  } catch (error) {
-    toast.error('Erro ao atualizar conexão.');
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-// Função para criar a conexão
 const handleCreateConnection = async (connectionData: {
   name: string;
   webhook_url: string;
   is_active: boolean;
 }) => {
-  isLoading.value = true;
-  try {
-    const response = await axios.post('/connections', connectionData, {
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const { success, message, data } = response.data;
-
-    if (success) {
-      toast.success(message || 'Conexão criada com sucesso!');
-      localConnections.value = [data, ...localConnections.value];
-      localTotalConnections.value += 1;
-    } else {
-      toast.error('Algo deu errado ao criar a conexão.');
-    }
-
-  } catch (error) {
-    const axiosError = error as AxiosError<ValidationErrorResponse>;
-    if (axiosError.response && axiosError.response.status === 422) {
-      const errors = axiosError.response.data.errors;
-      const errorMessages = Object.values(errors).flat().join('\n');
-      toast.error(`Erro ao criar conexão:\n${errorMessages}`);
-    } else {
-      console.error('Erro ao criar conexão:', axiosError);
-      toast.error('Falha ao criar a conexão. Verifique o console para mais detalhes.');
-    }
-  } finally {
-    isLoading.value = false;
-    if (connectionMenuRef.value?.createModalRef?.modalRef?.closeModal) {
-      connectionMenuRef.value.createModalRef.modalRef.closeModal();
-    }
+  await createConnection(connectionData);
+  if (connectionMenuRef.value?.createModalRef?.modalRef?.closeModal) {
+    connectionMenuRef.value.createModalRef.modalRef.closeModal();
   }
 };
 
-const updateConnectionStatus = (id: number, isActive: boolean) => {
-  localConnections.value = localConnections.value.map(conn =>
-    conn.id === id ? { ...conn, is_active: isActive } : conn
-  );
-};
-
-const deleteConnection = (id: number) => {
-  localConnections.value = localConnections.value.filter(conn => conn.id !== id);
-  localTotalConnections.value -= 1;
-};
-
-const refreshConnections = async () => {
-  try {
-    const response = await axios.get('/connections', {
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-      },
-    });
-    localConnections.value = response.data.connections || response.data;
-  } catch (error) {
-    console.error('Erro ao atualizar conexões:', error);
-    toast.error('Falha ao atualizar as conexões.');
-  } finally {
-    if (connectionMenuRef.value?.resetRefreshing) {
-      connectionMenuRef.value.resetRefreshing();
-    }
+const handleEditConnection = async (connectionData: ConnectionData) => {
+  if (connectionToEdit.value) {
+    await editConnection(connectionData, connectionToEdit.value.id);
+    editModalRef.value?.closeModal();
   }
 };
-
-const filteredConnections = computed(() => {
-  let result = localConnections.value;
-
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    result = result.filter(conn =>
-      conn.name.toLowerCase().includes(query) ||
-      conn.webhook_url.toLowerCase().includes(query) ||
-      conn.public_token.toLowerCase().includes(query)
-    );
-  }
-
-  if (filterStatus.value === 'connected') {
-    result = result.filter(conn => conn.is_active);
-  } else if (filterStatus.value === 'disconnected') {
-    result = result.filter(conn => !conn.is_active);
-  }
-
-  return result;
-});
 
 const handleSearch = (query: string) => {
   searchQuery.value = query;
@@ -177,11 +75,6 @@ const handleSearch = (query: string) => {
 const handleFilter = (value: string) => {
   filterStatus.value = value;
 };
-
-onMounted(() => {
-  // Garantir que a lista local seja inicializada com os dados da prop
-  localConnections.value = props.connections;
-});
 </script>
 
 <template>
@@ -197,6 +90,7 @@ onMounted(() => {
         @update:filter="handleFilter"
         :totalConnections="localTotalConnections"
         :maxConnections="maxConnections"
+        :isLoading="isLoading"
         ref="connectionMenuRef"
       />
     </div>
@@ -207,23 +101,18 @@ onMounted(() => {
       </div>
     </template>
 
-    <!-- Lista de conexões -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 h-full p-4">
-      <template v-for="connection in filteredConnections" :key="connection.id">
-        <CardActions 
-          v-bind="connection" 
-          @open-edit-modal="openEditModal"
-          @update:is_active="updateConnectionStatus(connection.id, $event)"
-          @delete-connection="deleteConnection($event)"
-        />
-      </template>
-    </div>
+    <ConnectionList
+      :connections="filteredConnections"
+      @open-edit-modal="openEditModal"
+      @update:is_active="updateConnectionStatus"
+      @delete-connection="deleteConnection"
+    />
 
     <!-- Modal de edição -->
     <CreateConnectionModal
       ref="editModalRef"
       :connection="connectionToEdit"
-      @create="editConnection"
+      @create="handleEditConnection"
     />
   </AppLayout>
 </template>

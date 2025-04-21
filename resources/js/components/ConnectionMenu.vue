@@ -16,11 +16,11 @@ interface ConnectionData {
 const props = defineProps<{
   totalConnections: number;
   maxConnections: number;
+  isLoading: boolean;
 }>();
 
 const emit = defineEmits(['create', 'refresh', 'update:search', 'update:filter']);
 const createModalRef = ref(null);
-const isRefreshing = ref(false); // Estado para controlar o spinner
 
 // Função para lidar com a criação da conexão
 const handleCreate = (connectionData: ConnectionData) => {
@@ -29,13 +29,7 @@ const handleCreate = (connectionData: ConnectionData) => {
 
 // Função para disparar o refresh
 const handleRefresh = () => {
-  isRefreshing.value = true;
-  emit('refresh'); // Emite o evento para o pai atualizar as conexões
-};
-
-// Função para resetar o estado de carregamento (chamada pelo pai após o refresh)
-const resetRefreshing = () => {
-  isRefreshing.value = false;
+  emit('refresh');
 };
 
 const handleSearch = (query: string) => {
@@ -48,7 +42,6 @@ const handleFilter = (value: string) => {
 
 defineExpose({
   createModalRef,
-  resetRefreshing, // Expondo para o pai poder resetar o estado
 });
 </script>
 
@@ -63,11 +56,11 @@ defineExpose({
         <button
           @click="handleRefresh"
           class="p-1 rounded-full transition-colors h-[45px] w-[45px] flex items-center justify-center"
-          :disabled="isRefreshing"
+          :disabled="isLoading"
           title="Atualizar conexões"
         >
           <RefreshCw
-            v-if="!isRefreshing"
+            v-if="!isLoading"
             :size="16"
             class="text-gray-500 dark:text-gray-400"
           />
