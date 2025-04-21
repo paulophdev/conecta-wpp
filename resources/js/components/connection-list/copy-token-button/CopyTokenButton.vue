@@ -2,18 +2,21 @@
 <script setup lang="ts">
 import { DropdownMenuItem } from 'radix-vue';
 import { ClipboardCopy } from 'lucide-vue-next';
+import { useToast } from 'vue-toastification';
 
 const props = defineProps<{
   token: string;
 }>();
 
+const toast = useToast();
+
 const copyToken = async () => {
   try {
     await navigator.clipboard.writeText(props.token); // 'token' agora é reconhecido como prop
-    alert('Token copiado!');
+    toast.success('Token copiado!');
   } catch (err) {
     console.error('Failed to copy token:', err);
-    alert('Falha ao copiar o token.');
+    toast.error('Falha ao copiar o token.');
   }
 };
 </script>

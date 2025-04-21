@@ -8,6 +8,7 @@ import { CardActions } from '@/components/ui/card-actions';
 import ConnectionMenu from '@/components/ConnectionMenu.vue';
 import { CreateConnectionModal } from '@/components/connection-menu/create-connection-modal';
 import axios, { AxiosError } from 'axios';
+import { useToast } from 'vue-toastification';
 
 interface ConnectionData {
   id: number;
@@ -48,6 +49,7 @@ const localConnections = ref(props.connections);
 const searchQuery = ref('');
 const filterStatus = ref('all');
 const localTotalConnections = ref(props.totalConnections);
+const toast = useToast();
 
 const openEditModal = (connection: ConnectionData) => {
   connectionToEdit.value = connection;
@@ -66,10 +68,10 @@ const editConnection = async (connectionData: ConnectionData) => {
     if (success) {
       localConnections.value = localConnections.value.map(conn => conn.id === data.id ? data : conn);
       editModalRef.value?.closeModal();
-      alert('Conexão atualizada com sucesso!');
+      toast.success('Conexão atualizada com sucesso!');
     }
   } catch (error) {
-    alert('Erro ao atualizar conexão.');
+    toast.error('Erro ao atualizar conexão.');
   } finally {
     isLoading.value = false;
   }
@@ -83,7 +85,6 @@ const handleCreateConnection = async (connectionData: {
 }) => {
   isLoading.value = true;
   try {
-    // Envia os dados diretamente para o backend
     const response = await axios.post('/connections', connectionData, {
       headers: {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
@@ -91,19 +92,14 @@ const handleCreateConnection = async (connectionData: {
       },
     });
 
-    // Tratar a resposta do backend
     const { success, message, data } = response.data;
 
     if (success) {
-      alert(message || 'Conexão criada com sucesso!');
-      
-      // Adicionar a nova conexão à lista local
+      toast.success(message || 'Conexão criada com sucesso!');
       localConnections.value = [data, ...localConnections.value];
-      
-      // Atualizar o total de conexões
       localTotalConnections.value += 1;
     } else {
-      alert('Algo deu errado ao criar a conexão.');
+      toast.error('Algo deu errado ao criar a conexão.');
     }
 
   } catch (error) {
@@ -111,14 +107,13 @@ const handleCreateConnection = async (connectionData: {
     if (axiosError.response && axiosError.response.status === 422) {
       const errors = axiosError.response.data.errors;
       const errorMessages = Object.values(errors).flat().join('\n');
-      alert(`Erro ao criar conexão:\n${errorMessages}`);
+      toast.error(`Erro ao criar conexão:\n${errorMessages}`);
     } else {
       console.error('Erro ao criar conexão:', axiosError);
-      alert('Falha ao criar a conexão. Verifique o console para mais detalhes.');
+      toast.error('Falha ao criar a conexão. Verifique o console para mais detalhes.');
     }
   } finally {
     isLoading.value = false;
-    // Fechar o modal
     if (connectionMenuRef.value?.createModalRef?.modalRef?.closeModal) {
       connectionMenuRef.value.createModalRef.modalRef.closeModal();
     }
@@ -143,13 +138,13 @@ const refreshConnections = async () => {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
       },
     });
-    localConnections.value = response.data.connections || response.data; // Ajuste conforme a estrutura da resposta
+    localConnections.value = response.data.connections || response.data;
   } catch (error) {
     console.error('Erro ao atualizar conexões:', error);
-    alert('Falha ao atualizar as conexões.');
+    toast.error('Falha ao atualizar as conexões.');
   } finally {
     if (connectionMenuRef.value?.resetRefreshing) {
-      connectionMenuRef.value.resetRefreshing(); // Reseta o estado de carregamento
+      connectionMenuRef.value.resetRefreshing();
     }
   }
 };

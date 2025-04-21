@@ -3,6 +3,7 @@
 import { DialogRoot, DialogContent, DialogTitle, DialogDescription, DialogClose, DialogOverlay } from 'radix-vue';
 import { X, Phone, MessageSquare } from 'lucide-vue-next';
 import { ref } from 'vue';
+import { useToast } from 'vue-toastification';
 
 defineProps<{
   open: boolean;
@@ -15,9 +16,11 @@ const emit = defineEmits(['update:open', 'send-message']);
 const testPhoneNumber = ref('');
 const testMessage = ref('Essa é uma mensagem de teste!');
 
+const toast = useToast();
+
 const sendTestMessage = async () => {
   if (!testPhoneNumber.value) {
-    alert('Por favor, insira um número de telefone.');
+    toast.error('Por favor, insira um número de telefone.');
     return;
   }
   // Remover caracteres não numéricos antes de enviar

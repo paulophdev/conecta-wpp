@@ -11,6 +11,7 @@ import { DropdownMenu } from '@/components/connection-list/dropdown-menu';
 import { CopyTokenButton } from '@/components/connection-list/copy-token-button';
 import { DropdownMenuItem } from 'radix-vue';
 import axios from 'axios';
+import { useToast } from 'vue-toastification';
 
 interface Props {
   id?: number;
@@ -40,6 +41,7 @@ const isLoading = ref(false);
 const isModalOpen = ref(false);
 const isTestModalOpen = ref(false);
 const connectionStatus = ref<any>(null);
+const toast = useToast();
 
 const toggleWebhook = async () => {
   isLoading.value = true;
@@ -50,10 +52,10 @@ const toggleWebhook = async () => {
       },
     });
     webhookEnable.value = response.data.webhook_enable;
-    alert(response.data.success || 'Webhook atualizado com sucesso!');
+    toast.success(response.data.success || 'Webhook atualizado com sucesso!');
   } catch (error) {
     console.error('Erro ao atualizar webhook:', error);
-    alert('Falha ao atualizar o webhook.');
+    toast.error('Falha ao atualizar o webhook.');
   } finally {
     isLoading.value = false;
   }
@@ -72,13 +74,13 @@ const fetchConnectionStatus = async () => {
     const { success, data } = response.data;
     if (success) {
       connectionStatus.value = data;
-      emit('update:is_active', data.status.status === 'CONNECTED'); // Atualizar o estado via evento
+      emit('update:is_active', data.status.status === 'CONNECTED');
     } else {
-      alert('Erro ao obter o status da conexão.');
+      toast.error('Erro ao obter o status da conexão.');
     }
   } catch (error) {
     console.error('Erro ao consultar status:', error);
-    alert('Falha ao consultar o status da conexão.');
+    toast.error('Falha ao consultar o status da conexão.');
   } finally {
     isLoading.value = false;
   }
@@ -92,7 +94,7 @@ const fetchConnectionStatus = async () => {
       status: event.status,
       profile: event.profile,
     };
-    emit('update:is_active', event.is_active); // Atualizar via WebSocket
+    emit('update:is_active', event.is_active);
   });
 };
 
@@ -111,12 +113,12 @@ const disconnect = async () => {
         },
       });
       if (response.data.success) {
-        emit('update:is_active', false); // Notificar o pai para atualizar o estado
-        alert('Conexão desconectada com sucesso!');
+        emit('update:is_active', false);
+        toast.success('Conexão desconectada com sucesso!');
       }
     } catch (error) {
       console.error('Erro ao desconectar:', error);
-      alert('Falha ao desconectar a conexão.');
+      toast.error('Falha ao desconectar a conexão.');
     } finally {
       isLoading.value = false;
     }
@@ -134,11 +136,11 @@ const deleteConnection = async () => {
       });
       if (response.data.success) {
         emit('delete-connection', props.id);
-        alert('Conexão excluída com sucesso!');
+        toast.success('Conexão excluída com sucesso!');
       }
     } catch (error) {
       console.error('Erro ao excluir:', error);
-      alert('Falha ao excluir a conexão.');
+      toast.error('Falha ao excluir a conexão.');
     } finally {
       isLoading.value = false;
     }
@@ -157,12 +159,12 @@ const sendTestMessage = async (data: { phone: string; message: string }) => {
       },
     });
     if (response.data.success) {
-      alert('Mensagem de teste enviada com sucesso!');
+      toast.success('Mensagem de teste enviada com sucesso!');
       isTestModalOpen.value = false;
     }
   } catch (error) {
     console.error('Erro ao enviar mensagem de teste:', error);
-    alert('Falha ao enviar a mensagem de teste.');
+    toast.error('Falha ao enviar a mensagem de teste.');
   } finally {
     isLoading.value = false;
   }
