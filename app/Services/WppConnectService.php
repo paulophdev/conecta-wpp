@@ -211,4 +211,49 @@ class WppConnectService
             throw new \Exception("Erro ao enviar mensagem na API WPP Connect: " . $e->getMessage());
         }
     }
+
+    public function sendImage(string $publicToken, string $privateToken, string $phone, string $imageUrl, string $caption = '', string $filename = null): array
+    {
+        $url = "{$this->baseUrl}/{$publicToken}/send-image";
+
+        // Baixar a imagem e converter para base64
+        $imageContents = @file_get_contents($imageUrl);
+        if ($imageContents === false || strlen($imageContents) < 100) {
+            throw new \Exception('Não foi possível baixar a imagem do link informado ou o arquivo está vazio.');
+        }
+
+        // Detectar o tipo MIME
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->buffer($imageContents) ?: 'image/jpeg';
+        $base64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageContents);
+
+        // Gerar filename aleatório se não enviado
+        if (!$filename) {
+            $ext = pathinfo(parse_url($imageUrl, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
+            $filename = 'imagem_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => "Bearer {$privateToken}",
+            ])->post($url, [
+                'phone' => $phone,
+                'isGroup' => false,
+                'isNewsletter' => false,
+                'isLid' => false,
+                'filename' => $filename,
+                'caption' => $caption,
+                'base64' => $base64,
+            ]);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            throw new RequestException($response);
+        } catch (RequestException $e) {
+            throw new \Exception("Erro ao enviar imagem na API WPP Connect: " . $e->getMessage());
+        }
+    }
 }
