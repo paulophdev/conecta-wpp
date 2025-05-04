@@ -8,4 +8,5 @@ Route::post('/api/webhook/session-status', [WebhookController::class, 'handleSes
 Route::get('/api/connection/status/{public_token}', [ConnectionApiController::class, 'externalStatus']);
 Route::post('/api/connection/send-message/{public_token}', [ConnectionApiController::class, 'sendTextMessage']);
 Route::post('/api/connection/send-image/{public_token}', [ConnectionApiController::class, 'sendImageMessage']);
-Route::post('/api/connection/send-image-base64/{public_token}', [ConnectionApiController::class, 'sendImageBase64']); 
+Route::post('/api/connection/send-image-base64/{public_token}', [ConnectionApiController::class, 'sendImageBase64']);
+Route::get('/api/connection/list-groups/{public_token}', [ConnectionApiController::class, 'listGroups']); 

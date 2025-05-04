@@ -73,7 +73,7 @@ class ConnectionApiController extends Controller
             }
 
             $validated = $request->validate([
-                'phone' => 'required|string|max:20',
+                'phone' => 'required|string|max:40',
                 'message' => 'required|string|max:500',
                 'isGroup' => 'nullable|boolean',
             ]);
@@ -128,7 +128,7 @@ class ConnectionApiController extends Controller
             }
 
             $validated = $request->validate([
-                'phone' => 'required|string|max:20',
+                'phone' => 'required|string|max:40',
                 'image_url' => 'required|url',
                 'caption' => 'nullable|string|max:500',
                 'isGroup' => 'nullable|boolean',
@@ -186,7 +186,7 @@ class ConnectionApiController extends Controller
             }
 
             $validated = $request->validate([
-                'phone' => 'required|string|max:20',
+                'phone' => 'required|string|max:40',
                 'base64' => 'required|string',
                 'caption' => 'nullable|string|max:500',
                 'isGroup' => 'nullable|boolean',
@@ -219,6 +219,51 @@ class ConnectionApiController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erro inesperado ao enviar imagem.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function listGroups($public_token, Request $request)
+    {
+        try {
+            $organization = $this->getOrganizationFromRequest($request);
+            if (!$organization) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Organização não encontrada ou token inválido.'
+                ], 401);
+            }
+
+            $connection = $organization->connections()->where('public_token', $public_token)->first();
+            if (!$connection) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conexão não encontrada para esta organização.'
+                ], 404);
+            }
+
+            $groupsRaw = $this->wppConnectService->listGroups(
+                $connection->public_token,
+                $connection->private_token
+            );
+
+            // Filtrar apenas nome e id
+            $groups = collect($groupsRaw)->map(function ($group) {
+                return [
+                    'id' => $group['id']['_serialized'] ?? null,
+                    'name' => $group['name'] ?? ($group['groupMetadata']['subject'] ?? null),
+                ];
+            })->filter(fn($g) => $g['id'] && $g['name'])->values();
+
+            return response()->json([
+                'success' => true,
+                'groups' => $groups
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro inesperado ao listar grupos.',
                 'error' => $e->getMessage(),
             ], 500);
         }

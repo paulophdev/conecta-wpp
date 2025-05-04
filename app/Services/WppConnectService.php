@@ -290,4 +290,26 @@ class WppConnectService
             throw new \Exception("Erro ao enviar imagem na API WPP Connect: " . $e->getMessage());
         }
     }
+
+    public function listGroups(string $publicToken, string $privateToken): array
+    {
+        $url = "{$this->baseUrl}/{$publicToken}/list-chats";
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => "Bearer {$privateToken}",
+            ])->post($url, [
+                'onlyGroups' => true
+            ]);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            throw new RequestException($response);
+        } catch (RequestException $e) {
+            throw new \Exception("Erro ao buscar grupos na API WPP Connect: " . $e->getMessage());
+        }
+    }
 }
