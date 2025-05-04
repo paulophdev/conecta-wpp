@@ -53,6 +53,57 @@ class ConnectionApiController extends Controller
         }
     }
 
+    public function sendTextMessage($public_token, Request $request)
+    {
+        try {
+            $organization = $this->getOrganizationFromRequest($request);
+            if (!$organization) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Organização não encontrada ou token inválido.'
+                ], 401);
+            }
+
+            $connection = $organization->connections()->where('public_token', $public_token)->first();
+            if (!$connection) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conexão não encontrada para esta organização.'
+                ], 404);
+            }
+
+            $validated = $request->validate([
+                'phone' => 'required|string|max:20',
+                'message' => 'required|string|max:500',
+            ]);
+
+            $response = $this->wppConnectService->sendMessage(
+                $connection->public_token,
+                $connection->private_token,
+                $validated['phone'],
+                $validated['message']
+            );
+
+            if ($response['status'] === 'success') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Mensagem enviada com sucesso!'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Falha ao enviar mensagem.'
+                ], 500);
+            }
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro inesperado ao enviar mensagem.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     private function getOrganizationFromRequest(Request $request): ?Organization
     {
         $authorization = $request->header('Authorization');
