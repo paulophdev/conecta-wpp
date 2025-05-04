@@ -257,4 +257,37 @@ class WppConnectService
             throw new \Exception("Erro ao enviar imagem na API WPP Connect: " . $e->getMessage());
         }
     }
+
+    public function sendImageBase64(string $publicToken, string $privateToken, string $phone, string $base64, string $caption = '', string $filename = null, bool $isGroup = false): array
+    {
+        $url = "{$this->baseUrl}/{$publicToken}/send-image";
+
+        // Gerar filename aleatório se não enviado
+        if (!$filename) {
+            $filename = 'imagem_' . time() . '_' . rand(1000, 9999) . '.jpg';
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => "Bearer {$privateToken}",
+            ])->post($url, [
+                'phone' => $phone,
+                'isGroup' => $isGroup,
+                'isNewsletter' => false,
+                'isLid' => false,
+                'filename' => $filename,
+                'caption' => $caption,
+                'base64' => $base64,
+            ]);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            throw new RequestException($response);
+        } catch (RequestException $e) {
+            throw new \Exception("Erro ao enviar imagem na API WPP Connect: " . $e->getMessage());
+        }
+    }
 }
