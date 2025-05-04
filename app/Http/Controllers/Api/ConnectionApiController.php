@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Organization;
+use App\Services\WppConnectService;
+
+class ConnectionApiController extends Controller
+{
+    protected $wppConnectService;
+
+    public function __construct(WppConnectService $wppConnectService)
+    {
+        $this->wppConnectService = $wppConnectService;
+    }
+
+    public function externalStatus($public_token, Request $request)
+    {
+        try {
+            $organization = $this->getOrganizationFromRequest($request);
+            if (!$organization) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Organização não encontrada ou token inválido.'
+                ], 401);
+            }
+
+            $connection = $organization->connections()->where('public_token', $public_token)->first();
+            
+            if (!$connection) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conexão não encontrada para esta organização.'
+                ], 404);
+            }
+
+            // Checar status real na API WPPConnect
+            $checkConnection = $this->wppConnectService->checkStatusConnection($public_token, $connection->private_token);
+            $status = $checkConnection['status'] ? 'active' : 'inactive';
+
+            return response()->json([
+                'success' => true,
+                'status' => $status
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro inesperado ao consultar status.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function getOrganizationFromRequest(Request $request): ?Organization
+    {
+        $authorization = $request->header('Authorization');
+        if (!$authorization || !str_starts_with($authorization, 'Bearer ')) {
+            return null;
+        }
+        $apiKey = trim(str_replace('Bearer', '', $authorization));
+        return Organization::where('api_key', $apiKey)->first();
+    }
+} 

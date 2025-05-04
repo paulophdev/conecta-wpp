@@ -19,7 +19,6 @@ Route::get('/trigger-hello', function () {
     return 'Evento disparado!';
 });
 
-Route::post('/api/webhook/session-status', [WebhookController::class, 'handleSessionStatus']);
 Route::get('/webhook/default', [WebhookController::class, 'webhookDefault']);
 
 Route::get('/connections', [ConnectionController::class, 'index'])
@@ -55,3 +54,4 @@ Route::get('/connections/chart-data', [ConnectionController::class, 'getConnecti
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+require __DIR__.'/api_custom.php';
