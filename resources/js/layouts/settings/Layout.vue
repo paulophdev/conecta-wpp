@@ -18,6 +18,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Personalização',
         href: '/settings/appearance',
     },
+    {
+        title: 'Integração',
+        href: '/settings/integration',
+    },
 ];
 
 const page = usePage();

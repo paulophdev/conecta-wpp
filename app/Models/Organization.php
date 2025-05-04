@@ -9,6 +9,8 @@ class Organization extends Model
     protected $fillable = [
         'name',
         'max_connections',
+        'api_key',
+        'user_id',
     ];
 
     public function users()
