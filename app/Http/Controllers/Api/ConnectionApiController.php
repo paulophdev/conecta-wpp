@@ -75,13 +75,17 @@ class ConnectionApiController extends Controller
             $validated = $request->validate([
                 'phone' => 'required|string|max:20',
                 'message' => 'required|string|max:500',
+                'isGroup' => 'nullable|boolean',
             ]);
+
+            $isGroup = $validated['isGroup'] ?? false;
 
             $response = $this->wppConnectService->sendMessage(
                 $connection->public_token,
                 $connection->private_token,
                 $validated['phone'],
-                $validated['message']
+                $validated['message'],
+                $isGroup
             );
 
             if ($response['status'] === 'success') {
@@ -127,14 +131,19 @@ class ConnectionApiController extends Controller
                 'phone' => 'required|string|max:20',
                 'image_url' => 'required|url',
                 'caption' => 'nullable|string|max:500',
+                'isGroup' => 'nullable|boolean',
             ]);
+
+            $isGroup = $validated['isGroup'] ?? false;
 
             $response = $this->wppConnectService->sendImage(
                 $connection->public_token,
                 $connection->private_token,
                 $validated['phone'],
                 $validated['image_url'],
-                $validated['caption'] ?? ''
+                $validated['caption'] ?? '',
+                null,
+                $isGroup
             );
 
             if ($response['status'] === 'success') {

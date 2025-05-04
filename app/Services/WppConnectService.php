@@ -188,7 +188,7 @@ class WppConnectService
         }
     }
 
-    public function sendMessage(string $publicToken, string $privateToken, string $phone, string $message): array
+    public function sendMessage(string $publicToken, string $privateToken, string $phone, string $message, bool $isGroup = false): array
     {
         $url = "{$this->baseUrl}/{$publicToken}/send-message";
 
@@ -198,7 +198,8 @@ class WppConnectService
                 'Authorization' => "Bearer {$privateToken}",
             ])->post($url, [
                 'phone' => $phone,
-                'message' => $message
+                'message' => $message,
+                'isGroup' => $isGroup,
             ]);
 
             if ($response->successful()) {
@@ -212,7 +213,7 @@ class WppConnectService
         }
     }
 
-    public function sendImage(string $publicToken, string $privateToken, string $phone, string $imageUrl, string $caption = '', string $filename = null): array
+    public function sendImage(string $publicToken, string $privateToken, string $phone, string $imageUrl, string $caption = '', string $filename = null, bool $isGroup = false): array
     {
         $url = "{$this->baseUrl}/{$publicToken}/send-image";
 
@@ -239,7 +240,7 @@ class WppConnectService
                 'Authorization' => "Bearer {$privateToken}",
             ])->post($url, [
                 'phone' => $phone,
-                'isGroup' => false,
+                'isGroup' => $isGroup,
                 'isNewsletter' => false,
                 'isLid' => false,
                 'filename' => $filename,
