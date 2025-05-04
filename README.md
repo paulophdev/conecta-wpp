@@ -25,3 +25,6 @@ https://uiverse.io/elements
 
 Docs.
 http://localhost:21465/api-docs
+
+Configuração do Wppconnect-server no servidor
+https://wppconnect.io/pt-BR/docs/projects/wppserver/configuration
