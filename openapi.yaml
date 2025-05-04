@@ -1,0 +1,360 @@
+openapi: 3.0.0
+info:
+  title: API Conecta-wpp
+  version: 1.0.0
+  description: |
+    Documentação da API para integração com WhatsApp e recursos de envio de mensagens.
+
+servers:
+  - url: http://localhost:8000/api
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /connection/status/{public_token}:
+    get:
+      summary: Consulta status da conexão
+      parameters:
+        - name: public_token
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Status retornado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  status:
+                    type: string
+                    enum: [active, inactive]
+              examples:
+                Sucesso:
+                  value:
+                    success: true
+                    status: active
+                Erro:
+                  value:
+                    success: false
+                    message: "Conexão não encontrada para esta organização."
+        '401':
+          description: Token inválido
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Organização não encontrada ou token inválido."
+        '500':
+          description: Erro inesperado
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Erro inesperado ao consultar status."
+                error: "Mensagem detalhada do erro"
+
+  /connection/send-message/{public_token}:
+    post:
+      summary: Envia mensagem de texto para contato
+      parameters:
+        - name: public_token
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                message:
+                  type: string
+                isGroup:
+                  type: boolean
+                  default: false
+            example:
+              phone: "5511999999999"
+              message: "Olá, mundo!"
+              isGroup: false
+      responses:
+        '200':
+          description: Mensagem enviada
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Mensagem enviada com sucesso!"
+        '401':
+          description: Token inválido
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Organização não encontrada ou token inválido."
+        '404':
+          description: Conexão não encontrada
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Conexão não encontrada para esta organização."
+        '500':
+          description: Erro inesperado
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Erro inesperado ao enviar mensagem."
+                error: "Mensagem detalhada do erro"
+
+  /connection/send-message-group/{public_token}:
+    post:
+      summary: Envia mensagem de texto para grupo
+      parameters:
+        - name: public_token
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  description: "ID do grupo (ex: 123456789101-1234567891@g.us)"
+                message:
+                  type: string
+                isGroup:
+                  type: boolean
+                  default: true
+            example:
+              phone: "123456789101-1234567891@g.us"
+              message: "Mensagem para o grupo!"
+              isGroup: true
+      responses:
+        '200':
+          description: Mensagem enviada
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Mensagem enviada com sucesso!"
+        '401':
+          description: Token inválido
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Organização não encontrada ou token inválido."
+        '404':
+          description: Grupo não encontrado
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Conexão não encontrada para esta organização."
+        '500':
+          description: Erro inesperado
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Erro inesperado ao enviar mensagem."
+                error: "Mensagem detalhada do erro"
+
+  /connection/send-image/{public_token}:
+    post:
+      summary: Envia imagem por URL
+      parameters:
+        - name: public_token
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                image_url:
+                  type: string
+                caption:
+                  type: string
+                isGroup:
+                  type: boolean
+                  default: false
+            example:
+              phone: "5511999999999"
+              image_url: "https://exemplo.com/imagem.jpg"
+              caption: "Minha legenda"
+              isGroup: false
+      responses:
+        '200':
+          description: Imagem enviada
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Imagem enviada com sucesso!"
+        '401':
+          description: Token inválido
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Organização não encontrada ou token inválido."
+        '404':
+          description: Conexão não encontrada
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Conexão não encontrada para esta organização."
+        '500':
+          description: Erro inesperado
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Erro inesperado ao enviar imagem."
+                error: "Mensagem detalhada do erro"
+
+  /connection/send-image-base64/{public_token}:
+    post:
+      summary: Envia imagem em base64
+      parameters:
+        - name: public_token
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                base64:
+                  type: string
+                caption:
+                  type: string
+                isGroup:
+                  type: boolean
+                  default: false
+            example:
+              phone: "5511999999999"
+              base64: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD..."
+              caption: "Minha legenda"
+              isGroup: false
+      responses:
+        '200':
+          description: Imagem enviada
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Imagem enviada com sucesso!"
+        '401':
+          description: Token inválido
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Organização não encontrada ou token inválido."
+        '404':
+          description: Conexão não encontrada
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Conexão não encontrada para esta organização."
+        '500':
+          description: Erro inesperado
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Erro inesperado ao enviar imagem."
+                error: "Mensagem detalhada do erro"
+
+  /connection/list-groups/{public_token}:
+    get:
+      summary: Lista grupos do WhatsApp
+      parameters:
+        - name: public_token
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de grupos
+          content:
+            application/json:
+              example:
+                success: true
+                groups:
+                  - id: "123456789101-1234567891@g.us"
+                    name: "Grupo de teste"
+        '401':
+          description: Token inválido
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Organização não encontrada ou token inválido."
+        '404':
+          description: Conexão não encontrada
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Conexão não encontrada para esta organização."
+        '500':
+          description: Erro inesperado
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Erro inesperado ao listar grupos."
+                error: "Mensagem detalhada do erro" 

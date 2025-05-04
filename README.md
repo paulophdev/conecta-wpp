@@ -14,6 +14,10 @@ Versão do Laravel: 12.1.1
 cd C:\Users\paulo\OneDrive\Documentos\projetos-pessoais\wppconnect-server
 npm run dev
 
+Gerar documentação da API:
+Obs.: Atualizar o openapi.yaml e executar o comando abaixo:
+npx @redocly/cli build-docs openapi.yaml
+
 Componentes
 https://www.radix-vue.com
 

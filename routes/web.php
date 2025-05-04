@@ -52,6 +52,16 @@ Route::get('/connections/chart-data', [ConnectionController::class, 'getConnecti
     ->middleware(['auth', 'verified'])
     ->name('connections.chart-data');
 
+Route::get('/docs', function () {
+    $path = base_path('redoc-static.html');
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    return response()->file($path, [
+        'Content-Type' => 'text/html'
+    ]);
+});
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 require __DIR__.'/api_custom.php';
