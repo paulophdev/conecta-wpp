@@ -9,6 +9,7 @@ import { initializeTheme } from './composables/useAppearance';
 import './echo';
 import { mask } from 'vue-the-mask';
 import { Toast, options } from './plugins/toast';
+import { bugsnagVue } from './bugsnag';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -36,6 +37,11 @@ createInertiaApp({
             .use(ZiggyVue)
             .use(Toast, options)
             .directive('mask', mask);
+
+        // Só usa o plugin do Bugsnag se ele estiver disponível
+        if (bugsnagVue) {
+            app.use(bugsnagVue);
+        }
 
         app.mount(el);
     },

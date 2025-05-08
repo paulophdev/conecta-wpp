@@ -10,9 +10,9 @@ const props = defineProps<{
 
 const toast = useToast();
 
-const copyToken = async () => {
+const copyToken = async () => {  
   try {
-    await navigator.clipboard.writeText(props.token); // 'token' agora é reconhecido como prop
+    await navigator.clipboard.writeText(props.token);
     toast.success('Token copiado!');
   } catch (err) {
     console.error('Failed to copy token:', err);

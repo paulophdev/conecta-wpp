@@ -25,6 +25,9 @@
         "vue-tsc": "^2.2.4"
     },
     "dependencies": {
+        "@bugsnag/browser-performance": "^2.12.0",
+        "@bugsnag/js": "^8.2.0",
+        "@bugsnag/plugin-vue": "^8.2.0",
         "@headlessui/vue": "^1.7.23",
         "@inertiajs/vue3": "^2.0.0-beta.3",
         "@radix-ui/colors": "^3.0.0",

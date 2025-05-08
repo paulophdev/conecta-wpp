@@ -77,3 +77,13 @@ npx @redocly/cli build-docs openapi.yaml
 ## 📦 Produção
 
 Para configuração do WPPConnect Server em ambiente de produção, consulte a [documentação oficial](https://wppconnect.io/pt-BR/docs/projects/wppserver/configuration).
+
+# Configuração do Bugsnag
+
+Para ativar o monitoramento de erros com o Bugsnag, basta adicionar a chave de API no seu arquivo `.env`:
+
+```
+VITE_BUGSNAG_API_KEY=SEU_API_KEY_DO_BUGSNAG
+```
+
+Se a variável não estiver definida, o Bugsnag não será inicializado. O log de inicialização do Bugsnag só aparece no console em ambiente de desenvolvimento.
