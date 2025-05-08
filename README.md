@@ -80,10 +80,18 @@ Para configuração do WPPConnect Server em ambiente de produção, consulte a [
 
 # Configuração do Bugsnag
 
-Para ativar o monitoramento de erros com o Bugsnag, basta adicionar a chave de API no seu arquivo `.env`:
+Para ativar o monitoramento de erros com o Bugsnag, utilize duas chaves diferentes:
 
+## Frontend (Vue.js)
+Adicione a chave de API do tipo **Browser** no seu arquivo `.env`:
 ```
-VITE_BUGSNAG_API_KEY=SEU_API_KEY_DO_BUGSNAG
+VITE_BUGSNAG_FRONTEND_KEY=CHAVE_BROWSER_DO_BUGSNAG
 ```
 
-Se a variável não estiver definida, o Bugsnag não será inicializado. O log de inicialização do Bugsnag só aparece no console em ambiente de desenvolvimento.
+## Backend (Laravel)
+Adicione a chave de API do tipo **Server** no seu arquivo `.env`:
+```
+BUGSNAG_BACKEND_KEY=CHAVE_SERVER_DO_BUGSNAG
+```
+
+Se as variáveis não estiverem definidas, o Bugsnag não será inicializado. O log de inicialização do Bugsnag só aparece no console em ambiente de desenvolvimento.

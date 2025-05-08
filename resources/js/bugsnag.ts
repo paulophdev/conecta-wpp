@@ -3,7 +3,7 @@ import BugsnagPluginVue from '@bugsnag/plugin-vue'
 import BugsnagPerformance from '@bugsnag/browser-performance'
 import type { Plugin } from 'vue'
 
-const BUGSNAG_API_KEY = import.meta.env.VITE_BUGSNAG_API_KEY
+const BUGSNAG_API_KEY = import.meta.env.VITE_BUGSNAG_FRONTEND_KEY
 
 // Só inicializa o Bugsnag se tiver a API key configurada
 if (BUGSNAG_API_KEY) {
