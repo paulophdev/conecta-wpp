@@ -2,35 +2,45 @@
 
 ## 📋 Requisitos do Sistema
 
-### Versões das Ferramentas
-- PHP: 8.4.4
-- Node.js: 22.11.0
-- Laravel: 12.1.1
+### Importante ter instalado
+- Docker
+- Docker Compose
 
-## 🚀 Início Rápido
+## 🚀 Início Rápido com Docker
 
 ### 1. Clone o Projeto
 ```bash
 git clone https://github.com/paulophdev/conecta-wpp
+cd conecta-wpp
 ```
 
-### 2. Instalação das Dependências
+### 2. Crie o arquivo de ambiente
 ```bash
-# Dependências PHP
-composer install
-
-# Dependências JavaScript
-npm install
+cp .env.example .env
 ```
 
-### 3. Iniciar a Aplicação
+### 3. Suba os containers
 ```bash
-# Iniciar servidor Laravel
-composer run dev
-
-# Iniciar servidor Reverb (comunicação em tempo real)
-php artisan reverb:start --debug
+docker-compose up -d --build
 ```
+
+### 4. Instale as dependências e gere os assets (dentro do container)
+```bash
+docker-compose exec app composer install
+docker-compose exec app npm install
+```
+
+### 5. Gere o build do frontend e rode as migrations
+```bash
+docker-compose exec app rm -rf public/build
+docker-compose exec app npm run build
+docker-compose exec app php artisan migrate
+```
+
+### 6. Acesse a aplicação
+Abra o navegador em [http://localhost:8000](http://localhost:8000)
+
+---
 
 ## 🔧 Configuração do WPPConnect Server
 
@@ -49,10 +59,12 @@ git clone https://github.com/wppconnect-team/wppconnect-server
 
 4. Limpe os caches:
 ```bash
-php artisan config:clear
-php artisan cache:clear
-php artisan reverb:restart
+docker-compose exec app php artisan config:clear
+docker-compose exec app php artisan cache:clear
+docker-compose exec app php artisan reverb:restart
 ```
+
+---
 
 ## 📚 Documentação da API
 

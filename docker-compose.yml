@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: conecta-wpp
+    ports:
+      - "8000:8000"
+      - "5173:5173" # porta default do Vite (frontend)
+      - "8080:8080" # porta default do Reverb (backend)
+    volumes:
+      - .:/var/www
+      - /var/www/vendor
+      - /var/www/node_modules
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+    depends_on:
+      - redis
+    command: >
+      npx concurrently -c "#93c5fd,#c4b5fd,#fdba74,#6ee7b7"
+      "php artisan serve --host=0.0.0.0 --port=8000"
+      "php artisan reverb:start --debug"
+
+  redis:
+    image: redis:alpine
+    container_name: laravel-redis
+    ports:
+      - "6379:6379"
